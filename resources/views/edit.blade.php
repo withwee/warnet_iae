@@ -17,7 +17,7 @@
 
             <!-- Foto Profil dan Nama -->
             <div class="flex flex-col items-center w-1/3">
-                <img src="{{ $user->photo ? asset('storage/' . $user->photo) : asset('images/profile.png') }}" 
+                <img src="{{ $user->photo ? asset('storage/' . $user->photo) : asset('images/Foto Profil.jpg') }}" 
                      alt="Profile" 
                      class="w-32 h-32 rounded-full object-cover">
                 <h2 class="mt-4 font-bold text-xl text-center">{{ $user->name }}</h2>

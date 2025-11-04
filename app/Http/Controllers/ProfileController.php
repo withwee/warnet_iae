@@ -62,6 +62,43 @@ class ProfileController extends Controller
         return redirect()->route('profile.show')->with('success', 'Profil berhasil diperbarui!');
     }
 
+    public function deletePhoto($id)
+    {
+        $authUser = $this->getAuthenticatedUserOrRedirect();
+        if (!$authUser instanceof User) return $authUser;
+
+        if ((int) $authUser->id !== (int) $id) {
+            return redirect()->back()->withErrors(['error' => 'Tidak diizinkan mengubah data user lain']);
+        }
+
+        // Simpan status foto sebelumnya
+        $hadPhoto = $authUser->photo !== null;
+
+        // Hapus file foto dari storage jika ada
+        if ($authUser->photo) {
+            // Hapus file fisik
+            $photoPath = $authUser->photo;
+            if (Storage::disk('public')->exists($photoPath)) {
+                Storage::disk('public')->delete($photoPath);
+            }
+        }
+        
+        // Set photo menjadi null di database
+        $authUser->photo = null;
+        $authUser->save();
+
+        // Update session
+        session(['user' => [
+            'id'    => $authUser->id,
+            'name'  => $authUser->name,
+            'role'  => $authUser->role,
+            'photo' => null,
+        ]]);
+
+        $message = $hadPhoto ? 'Foto profil berhasil dihapus!' : 'Tidak ada foto untuk dihapus.';
+        return redirect()->route('profile.edit')->with('success', $message);
+    }
+
     // Reusable method to get user from JWT in session
     private function getAuthenticatedUserOrRedirect()
     {

@@ -177,7 +177,7 @@ class UserController extends Controller
     }
 
     if ($user->role === 'admin') {
-        return view('admin.dashboardAdmin', compact('user'));
+        return redirect()->route('admin.dashboardAdmin');
     }
 
     // ✅ Ambil year & month dari query string, fallback ke sekarang

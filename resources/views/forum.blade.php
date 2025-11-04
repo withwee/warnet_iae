@@ -15,7 +15,7 @@
         <form action="{{ route('forum.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
             <div class="flex items-center gap-3 mb-3">
-                <img src="{{ $user->photo ? asset('storage/' . $user->photo) : asset('images/profile.png') }}" 
+                <img src="{{ $user->photo ? asset('storage/' . $user->photo) : asset('images/Foto Profil.jpg') }}" 
                      alt="Profile Photo" 
                      class="w-10 h-10 rounded-full border-2 border-gray-200 object-cover">
                 
@@ -51,7 +51,7 @@
     <div class="bg-white p-4 rounded-xl shadow">
         <div class="flex items-center justify-between mb-3">
             <div class="flex items-center gap-3 ">
-                <img src="{{ $forum->user->photo ? asset('storage/' . $forum->user->photo) : asset('images/profile.png') }}" 
+                <img src="{{ $forum->user->photo ? asset('storage/' . $forum->user->photo) : asset('images/Foto Profil.jpg') }}" 
                      alt="Profile Photo" 
                      class="w-10 h-10 rounded-full border-2 border-gray-200 object-cover">
                 <div>
@@ -93,7 +93,7 @@
             <!-- Daftar komentar -->
             @foreach($forum->comments as $comment)
             <div class="flex gap-3 mb-2 items-center">
-                <img src="{{ $comment->user->photo ? asset('storage/' . $comment->user->photo) : asset('images/profile.png') }}" 
+                <img src="{{ $comment->user->photo ? asset('storage/' . $comment->user->photo) : asset('images/Foto Profil.jpg') }}" 
                      alt="Profile Photo" 
                      class="w-8 h-8 rounded-full border border-gray-200 object-cover">
                 <div>

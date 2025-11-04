@@ -41,7 +41,7 @@
                 <div class="flex items-center gap-3">
                     <a href="{{ route('profile.show') }}" class="flex items-center gap-2">
                         <span class="font-semibold text-gray-800">{{ $user->name ?? 'Guest' }}</span>
-                        <img src="{{ auth()->user() && auth()->user()->photo ? asset('storage/' . auth()->user()->photo) : asset('images/profile.png') }}" 
+                        <img src="{{ auth()->user() && auth()->user()->photo ? asset('storage/' . auth()->user()->photo) : asset('images/Foto Profil.jpg') }}" 
                         alt="Profile Photo" 
                         class="w-10 h-10 rounded-full border-2 border-white shadow-md object-cover">
                     </a>

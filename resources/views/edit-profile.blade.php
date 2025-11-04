@@ -4,6 +4,20 @@
 <div class="container mx-auto">
     <h1 class="text-2xl font-bold mb-6">Edit Profile</h1>
 
+    @if(session('success'))
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    @if($errors->any())
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            @foreach($errors->all() as $error)
+                <p>{{ $error }}</p>
+            @endforeach
+        </div>
+    @endif
+
     <form action="{{ route('profile.update', $user->id) }}" method="POST" enctype="multipart/form-data" class="bg-white rounded-2xl p-8 shadow-md">
         @csrf
         @method('PUT')
@@ -16,10 +30,19 @@
     <!-- Preview Foto -->
     <div class="mt-4">
         <img id="photoPreview" 
-             src="{{ $user->photo ? asset('storage/' . $user->photo) : asset('images/profile.png') }}" 
+             src="{{ $user->photo ? asset('storage/' . $user->photo) : asset('images/Foto Profil.jpg') }}" 
              alt="Current Photo" 
              class="w-20 h-20 rounded-full object-cover shadow-md">
     </div>
+
+    <!-- Tombol Hapus Foto -->
+    @if($user->photo)
+    <div class="mt-2">
+        <button type="button" onclick="hapusFoto({{ $user->id }})" class="text-red-500 hover:text-red-700 text-sm font-semibold">
+            🗑️ Hapus Foto Profil
+        </button>
+    </div>
+    @endif
 
     @error('photo')
         <div class="text-red-500 text-sm mt-1">{{ $message }}</div>
@@ -100,6 +123,30 @@
                 preview.src = e.target.result;
             }
             reader.readAsDataURL(input.files[0]);
+        }
+    }
+    
+    function hapusFoto(userId) {
+        if (confirm('Apakah Anda yakin ingin menghapus foto profil?')) {
+            console.log('Menghapus foto untuk user ID:', userId);
+            
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/profile/' + userId + '/delete-photo';
+            
+            console.log('Form action:', form.action);
+            
+            const csrf = document.createElement('input');
+            csrf.type = 'hidden';
+            csrf.name = '_token';
+            csrf.value = '{{ csrf_token() }}';
+            form.appendChild(csrf);
+            
+            document.body.appendChild(form);
+            console.log('Submitting form...');
+            form.submit();
+        } else {
+            console.log('Hapus foto dibatalkan');
         }
     }
 </script>

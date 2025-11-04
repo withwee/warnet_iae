@@ -79,6 +79,7 @@ Route::middleware('auth.custom')->group(function () {
     // Profile routes
     Route::get('/profile', [ProfileController::class, 'showEditForm'])->name('profile.show');
     Route::get('/profile/edit', [ProfileController::class, 'showEditForm'])->name('profile.edit');
+    Route::post('/profile/{id}/delete-photo', [ProfileController::class, 'deletePhoto'])->name('profile.deletePhoto');
     Route::put('/profile/{id}', [ProfileController::class, 'update'])->name('profile.update');
 });
 
