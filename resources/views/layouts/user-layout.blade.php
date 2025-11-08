@@ -4,12 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $title ?? 'WargaNet' }} - WargaNet</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
     <style>
         body {
             margin: 0;
-            font-family: 'Figtree', sans-serif;
+            font-family: 'Poppins', sans-serif;
             background: #e8f4f8;
         }
         .dashboard-container {
@@ -53,9 +56,19 @@
             color: #2563eb;
             font-weight: 600;
         }
-        .sidebar-item svg {
+        .sidebar-item svg,
+        .sidebar-item iconify-icon {
             width: 20px;
             height: 20px;
+            flex-shrink: 0;
+        }
+        /* Icon color untuk state normal (putih) */
+        .sidebar-item iconify-icon {
+            color: white;
+        }
+        /* Icon color untuk state active (biru) */
+        .sidebar-item.active iconify-icon {
+            color: #2563eb;
         }
         .logout-btn {
             margin-top: auto;
@@ -104,8 +117,8 @@
             </a>
             
             <a href="{{ route('pengumuman') }}" class="sidebar-item {{ request()->routeIs('pengumuman') ? 'active' : '' }}">
-                <svg fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z"/>
+                <svg fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12,8H4A2,2 0 0,0 2,10V14A2,2 0 0,0 4,16H5V20A1,1 0 0,0 6,21H8A1,1 0 0,0 9,20V16H12L17,20V4L12,8M21.5,12C21.5,13.71 20.54,15.26 19,16V8C20.54,8.74 21.5,10.29 21.5,12Z"/>
                 </svg>
                 Pengumuman
             </a>
@@ -119,9 +132,8 @@
             </a>
             
             <a href="{{ route('bayar-iuran') }}" class="sidebar-item {{ request()->routeIs('bayar-iuran') ? 'active' : '' }}">
-                <svg fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
-                    <path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/>
+                <svg fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M5,6H23V18H5V6M14,9A3,3 0 0,1 17,12A3,3 0 0,1 14,15A3,3 0 0,1 11,12A3,3 0 0,1 14,9M9,8A2,2 0 0,1 7,10V14A2,2 0 0,1 9,16H19A2,2 0 0,1 21,14V10A2,2 0 0,1 19,8H9M1,10H3V20H19V22H1V10Z"/>
                 </svg>
                 Bayar Iuran
             </a>

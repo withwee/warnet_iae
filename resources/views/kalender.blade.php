@@ -18,7 +18,6 @@
 
     {{-- Section: Tampilan Kalender Kegiatan --}}
     <section aria-labelledby="kalender-kegiatan-section-title">
-        <h2 id="kalender-kegiatan-section-title" class="text-2xl font-bold text-gray-800 mb-6">Kalender Kegiatan</h2>
         <div class="bg-white p-6 rounded-xl shadow space-y-6">
             <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
                 <p class="font-bold text-xl md:text-2xl text-blue-600 order-2 sm:order-1">{{ $currentDate->translatedFormat('F, Y') }}</p>
