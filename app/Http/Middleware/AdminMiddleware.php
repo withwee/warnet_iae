@@ -10,10 +10,8 @@ class AdminMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
-        $user = $request->session()->get('user');
-
-        if (!$user || ($user['role'] ?? null) !== 'admin') {
-            return redirect()->route('home')->withErrors(['error' => 'Anda tidak memiliki akses ke halaman ini.']);
+        if (!auth()->check() || auth()->user()->role !== 'admin') {
+            return redirect()->route('login')->withErrors(['error' => 'Anda tidak memiliki akses ke halaman ini.']);
         }
 
         return $next($request);

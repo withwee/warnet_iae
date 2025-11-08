@@ -162,18 +162,10 @@ class UserController extends Controller
 
    public function dashboard(Request $request)
 {
-    try {
-        $token = session('jwt_token');
-        if (!$token) {
-            return redirect()->route('login.view')->withErrors(['error' => 'Token tidak tersedia']);
-        }
-
-        $user = JWTAuth::setToken($token)->authenticate();
-        if (!$user) {
-            return redirect()->route('login.view')->withErrors(['error' => 'User tidak ditemukan']);
-        }
-    } catch (TokenInvalidException | TokenExpiredException | JWTException $e) {
-        return redirect()->route('login.view')->withErrors(['error' => 'Token tidak valid atau kedaluwarsa']);
+    $user = auth()->user();
+    
+    if (!$user) {
+        return redirect()->route('login')->withErrors(['error' => 'Silakan login terlebih dahulu']);
     }
 
     if ($user->role === 'admin') {
@@ -196,9 +188,18 @@ class UserController extends Controller
     $totalWarga = $totalLakiLaki + $totalPerempuan;
 
     return view('dashboard', compact(
-        'user', 'kalenderKegiatan', 'year', 'month',
-        'totalIuran', 'totalPengeluaran', 'pengumumanTerbaru',
-        'jumlahIuran',"totalLakiLaki", "totalPerempuan","totalWarga", 'jumlahKK'
+        'user', 
+        'kalenderKegiatan', 
+        'year', 
+        'month',
+        'totalIuran', 
+        'totalPengeluaran', 
+        'pengumumanTerbaru',
+        'jumlahIuran',
+        'totalLakiLaki', 
+        'totalPerempuan',
+        'totalWarga', 
+        'jumlahKK'
     ));
 }
 
@@ -219,10 +220,15 @@ class UserController extends Controller
 
     public function forum()
     {
-        $user = $this->getAuthenticatedUserOrRedirect();
-        if (!$user instanceof User) return $user;
+        $user = auth()->user();
+        
+        if (!$user) {
+            return redirect()->route('login')->withErrors(['error' => 'Silakan login terlebih dahulu']);
+        }
 
-        return view('forum');
+        $forums = \App\Models\Forum::with(['user', 'comments.user'])->latest()->get();
+        
+        return view('forum', compact('user', 'forums'));
     }
 
     public function bayarIuran()
@@ -262,24 +268,28 @@ class UserController extends Controller
         return view('pay');
     }
 
-    // 🔐 Ambil user dari JWT token di session
+    public function notifikasi()
+    {
+        $user = $this->getAuthenticatedUserOrRedirect();
+        if (!$user instanceof User) return $user;
+
+        // Ambil notifikasi user
+        $notifikasis = \App\Models\Notification::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('notifikasi', compact('notifikasis', 'user'));
+    }
+
+    // 🔐 Ambil user dari Auth
     private function getAuthenticatedUserOrRedirect()
     {
-        try {
-            $token = JWTAuth::getToken() ?? session('jwt_token');
-            if (!$token) {
-                return redirect()->route('login.view')->withErrors(['error' => 'Silakan login terlebih dahulu.']);
-            }
-
-            $user = JWTAuth::setToken($token)->authenticate();
-            if (!$user) {
-                return redirect()->route('login.view')->withErrors(['error' => 'User tidak ditemukan']);
-            }
-
-            return $user;
-
-        } catch (TokenInvalidException | TokenExpiredException | JWTException $e) {
-            return redirect()->route('login.view')->withErrors(['error' => 'Token tidak valid atau kedaluwarsa']);
+        $user = auth()->user();
+        
+        if (!$user) {
+            return redirect()->route('login')->withErrors(['error' => 'Silakan login terlebih dahulu.']);
         }
+
+        return $user;
     }
 }

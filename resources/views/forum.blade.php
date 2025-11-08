@@ -1,48 +1,70 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forum</title>
-</head>
-<body>
-@extends('layouts.app')
+@extends('layouts.user-layout')
+
+@section('title', 'Forum')
 
 @section('content')
-<section class="space-y-4 p-4">
+<section class="space-y-4">
     <!-- Form untuk membuat postingan baru -->
     <div class="bg-white p-4 rounded-xl shadow">
         <form action="{{ route('forum.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
             <div class="flex items-center gap-3 mb-3">
-                <img src="{{ $user->photo ? asset('storage/' . $user->photo) : asset('images/Foto Profil.jpg') }}" 
+                <img src="{{ (isset($user) && $user->photo) ? asset('storage/' . $user->photo) . '?v=' . time() : asset('images/Foto Profil.jpg') }}" 
                      alt="Profile Photo" 
                      class="w-10 h-10 rounded-full border-2 border-gray-200 object-cover">
                 
                 <div class="flex-1 relative">
-                    <input type="text" 
+                    <textarea 
                            name="konten" 
                            placeholder="Ketik forum yang mau dibuat disini..." 
-                           class="w-full rounded-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           rows="2"
+                           class="w-full rounded-lg px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
                 </div>
+            </div>
+            
+            <!-- Preview Gambar -->
+            <div id="imagePreview" class="hidden mt-3">
+                <img id="previewImg" src="" alt="Preview" class="max-h-40 rounded-lg">
+                <button type="button" onclick="removeImage()" class="text-red-500 text-sm mt-2">Hapus Gambar</button>
+            </div>
+            
+            <div class="flex items-center justify-between mt-3">
+                <label for="gambarInput" class="flex items-center gap-2 cursor-pointer text-gray-600 hover:text-blue-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <span class="text-sm">Tambah Gambar</span>
+                    <input type="file" id="gambarInput" name="gambar" accept="image/*" class="hidden" onchange="previewImage(this)">
+                </label>
                 
-                <button type="submit" class="text-blue-500 hover:text-blue-700">
-                    <iconify-icon icon="mdi:send" class="text-2xl"></iconify-icon>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-full flex items-center gap-2 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                    </svg>
+                    <span>Posting</span>
                 </button>
             </div>
             
-            <div class="flex flex-col items-center justify-center gap-2">
-                <label for="gambar" class="flex flex-col items-center justify-center gap-2 cursor-pointer bg-blue-500 p-3 rounded-lg text-white">
-                    <div class="flex items-center gap-3">
-                        <iconify-icon icon="mdi:image-plus"></iconify-icon>
-                            <span>Tambah Gambar</span>
-                    </div>
-                    <input type="file" id="gambar" name="gambar" class="hidden" accept="image/*" onchange="previewImage(this)">
-                </label>
-                <div id="image-preview" class="hidden">
-        <img id="preview" class="h-16 w-16 object-cover rounded">
-    </div>
-            </div>
+            <script>
+            function previewImage(input) {
+                const preview = document.getElementById('imagePreview');
+                const previewImg = document.getElementById('previewImg');
+                
+                if (input.files && input.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewImg.src = e.target.result;
+                        preview.classList.remove('hidden');
+                    }
+                    reader.readAsDataURL(input.files[0]);
+                }
+            }
+            
+            function removeImage() {
+                document.getElementById('gambarInput').value = '';
+                document.getElementById('imagePreview').classList.add('hidden');
+            }
+            </script>
         </form>
     </div>
 
@@ -51,7 +73,7 @@
     <div class="bg-white p-4 rounded-xl shadow">
         <div class="flex items-center justify-between mb-3">
             <div class="flex items-center gap-3 ">
-                <img src="{{ $forum->user->photo ? asset('storage/' . $forum->user->photo) : asset('images/Foto Profil.jpg') }}" 
+                <img src="{{ $forum->user->photo ? asset('storage/' . $forum->user->photo) . '?v=' . $forum->user->updated_at->timestamp : asset('images/Foto Profil.jpg') }}" 
                      alt="Profile Photo" 
                      class="w-10 h-10 rounded-full border-2 border-gray-200 object-cover">
                 <div>
@@ -79,7 +101,7 @@
         
         <div class="border-t border-gray-200 pt-3">
             <!-- Form komentar -->
-            <form action="{{ route('comment.store', $forum->id) }}" method="POST" class="flex gap-2 mb-3">
+            <form action="{{ route('forum.reply', $forum->id) }}" method="POST" class="flex gap-2 mb-3">
                 @csrf
                 <input type="text" 
                        name="komentar" 
@@ -93,7 +115,7 @@
             <!-- Daftar komentar -->
             @foreach($forum->comments as $comment)
             <div class="flex gap-3 mb-2 items-center">
-                <img src="{{ $comment->user->photo ? asset('storage/' . $comment->user->photo) : asset('images/Foto Profil.jpg') }}" 
+                <img src="{{ $comment->user->photo ? asset('storage/' . $comment->user->photo) . '?v=' . $comment->user->updated_at->timestamp : asset('images/Foto Profil.jpg') }}" 
                      alt="Profile Photo" 
                      class="w-8 h-8 rounded-full border border-gray-200 object-cover">
                 <div>
@@ -120,22 +142,3 @@
     @endforeach
 </section>
 @endsection
-<script>
-function previewImage(input) {
-    const preview = document.getElementById('preview');
-    const previewContainer = document.getElementById('image-preview');
-    
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        
-        reader.onload = function(e) {
-            preview.src = e.target.result;
-            previewContainer.classList.remove('hidden');
-        }
-        
-        reader.readAsDataURL(input.files[0]);
-    }
-}
-</script>
-</body>
-</html>

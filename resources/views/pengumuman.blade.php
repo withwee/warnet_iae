@@ -1,4 +1,6 @@
-@extends('layouts.app')
+@extends('layouts.user-layout')
+
+@section('title', 'Pengumuman')
 
 @section('content')
 <div class="space-y-6">

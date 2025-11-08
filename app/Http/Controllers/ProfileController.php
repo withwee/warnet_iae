@@ -2,120 +2,87 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ProfileUpdateRequest;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use App\Models\User;
-use Tymon\JWTAuth\Facades\JWTAuth;
-use Tymon\JWTAuth\Exceptions\JWTException;
-use Tymon\JWTAuth\Exceptions\TokenInvalidException;
-use Tymon\JWTAuth\Exceptions\TokenExpiredException;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
-    public function showEditForm()
+    /**
+     * Display the user's profile form.
+     */
+    public function edit(Request $request): View
     {
-        $user = $this->getAuthenticatedUserOrRedirect();
-        if (!$user instanceof User) return $user;
-
-        return view('edit-profile', compact('user'));
+        return view('profile.edit', [
+            'user' => $request->user() ?? auth()->user(),
+        ]);
     }
 
-    public function update(Request $request, $id)
+    /**
+     * Update the user's profile information.
+     */
+    public function update(Request $request): RedirectResponse
     {
-        $authUser = $this->getAuthenticatedUserOrRedirect();
-        if (!$authUser instanceof User) return $authUser;
-
-        if ((int) $authUser->id !== (int) $id) {
-            return redirect()->back()->withErrors(['error' => 'Tidak diizinkan mengubah data user lain']);
-        }
-
+        $user = $request->user();
+        
         $validated = $request->validate([
-            'name'       => 'required|string',
-            'email'      => 'required|email',
-            'nik'        => 'required|digits:16',
-            'no_kk'      => 'required|digits:16',
-            'phone'      => 'required|numeric',
-            'photo'      => 'nullable|image|max:2048',
-            'jumlah_LK'  => 'required|numeric',
-            'jumlah_PR'  => 'required|numeric',
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'nik' => ['required', 'string', 'size:16', 'unique:users,nik,' . $user->id],
+            'no_kk' => ['required', 'string', 'size:16'],
+            'phone' => ['required', 'string', 'max:15'],
+            'jumlah_LK' => ['required', 'integer', 'min:0'],
+            'jumlah_PR' => ['required', 'integer', 'min:0'],
+            'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:1024'], // Max 1MB
+        ], [
+            'photo.max' => 'Ukuran foto maksimal 1MB. Silakan kompres foto Anda terlebih dahulu.',
+            'photo.image' => 'File harus berupa gambar.',
+            'photo.mimes' => 'Format foto harus jpeg, png, jpg, atau gif.',
         ]);
 
-        // handle foto
+        // Handle photo upload
         if ($request->hasFile('photo')) {
-            if ($authUser->photo) {
-                Storage::disk('public')->delete($authUser->photo);
+            // Delete old photo if exists
+            if ($user->photo) {
+                \Storage::disk('public')->delete($user->photo);
             }
-            $path = $request->file('photo')->store('photos', 'public');
-            $validated['photo'] = $path;
+            
+            $photoPath = $request->file('photo')->store('photos', 'public');
+            $validated['photo'] = $photoPath;
         }
 
-        $authUser->update($validated);
+        $user->fill($validated);
 
-        // Update session agar tampilan langsung berubah
-        session(['user' => [
-            'id'    => $authUser->id,
-            'name'  => $authUser->name,
-            'role'  => $authUser->role,
-            'photo' => $authUser->photo,
-        ]]);
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
+        }
 
-        return redirect()->route('profile.show')->with('success', 'Profil berhasil diperbarui!');
+        $user->save();
+
+        return Redirect::route('profile.edit')->with('status', 'Profile berhasil diperbarui!');
     }
 
-    public function deletePhoto($id)
+    /**
+     * Delete the user's account.
+     */
+    public function destroy(Request $request): RedirectResponse
     {
-        $authUser = $this->getAuthenticatedUserOrRedirect();
-        if (!$authUser instanceof User) return $authUser;
+        $request->validateWithBag('userDeletion', [
+            'password' => ['required', 'current_password'],
+        ]);
 
-        if ((int) $authUser->id !== (int) $id) {
-            return redirect()->back()->withErrors(['error' => 'Tidak diizinkan mengubah data user lain']);
-        }
+        $user = $request->user();
 
-        // Simpan status foto sebelumnya
-        $hadPhoto = $authUser->photo !== null;
+        Auth::logout();
 
-        // Hapus file foto dari storage jika ada
-        if ($authUser->photo) {
-            // Hapus file fisik
-            $photoPath = $authUser->photo;
-            if (Storage::disk('public')->exists($photoPath)) {
-                Storage::disk('public')->delete($photoPath);
-            }
-        }
-        
-        // Set photo menjadi null di database
-        $authUser->photo = null;
-        $authUser->save();
+        $user->delete();
 
-        // Update session
-        session(['user' => [
-            'id'    => $authUser->id,
-            'name'  => $authUser->name,
-            'role'  => $authUser->role,
-            'photo' => null,
-        ]]);
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
-        $message = $hadPhoto ? 'Foto profil berhasil dihapus!' : 'Tidak ada foto untuk dihapus.';
-        return redirect()->route('profile.edit')->with('success', $message);
-    }
-
-    // Reusable method to get user from JWT in session
-    private function getAuthenticatedUserOrRedirect()
-    {
-        try {
-            $token = JWTAuth::getToken() ?? session('jwt_token');
-            if (!$token) {
-                return redirect()->route('login.view')->withErrors(['error' => 'Silakan login terlebih dahulu.']);
-            }
-
-            $user = JWTAuth::setToken($token)->authenticate();
-            if (!$user) {
-                return redirect()->route('login.view')->withErrors(['error' => 'User tidak ditemukan']);
-            }
-
-            return $user;
-        } catch (TokenInvalidException | TokenExpiredException | JWTException $e) {
-            return redirect()->route('login.view')->withErrors(['error' => 'Token tidak valid atau kedaluwarsa']);
-        }
+        return Redirect::to('/');
     }
 }

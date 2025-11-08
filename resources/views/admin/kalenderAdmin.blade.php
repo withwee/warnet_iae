@@ -1,4 +1,7 @@
-@extends('layouts.app')
+@extends('layouts.admin-layout')
+
+@section('title', 'Kalender')
+
 @section('content')
 
 <div class="max-w-screen space-y-8">
@@ -17,14 +20,14 @@
 
             <div>
                 <label for="judulKegiatan" class="block text-base font-semibold mb-1 text-gray-700">Judul Kegiatan</label>
-                <input type="text" name="judulKegiatan" id="judulKegiatan" minlength="5" required
+                <input type="text" name="judulKegiatan" id="judulKegiatan" minlength="3" required
                        placeholder="Ketik judul kegiatan ..."
                        class="w-full border border-gray-300 rounded-full px-5 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 placeholder-gray-400">
             </div>
 
             <div>
                 <label for="deskripsiKegiatan" class="block text-base font-semibold mb-1 text-gray-700">Deskripsi Kegiatan</label>
-                <textarea name="deskripsiKegiatan" id="deskripsiKegiatan" minlength="10" required
+                <textarea name="deskripsiKegiatan" id="deskripsiKegiatan" minlength="3" required
                           placeholder="Ketik deskripsi kegiatan ..."
                           class="w-full border border-gray-300 rounded-2xl px-5 py-3 h-40 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 placeholder-gray-400"></textarea>
             </div>
@@ -150,6 +153,7 @@
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('formKegiatan');
     const judulInput = document.getElementById('judulKegiatan');
     const isiInput = document.getElementById('deskripsiKegiatan');
@@ -158,6 +162,7 @@
     const btnPublikasikan = document.getElementById('btnPublikasikan');
 
     function isValidDate() {
+        if (!tanggalInput.value) return false;
         const selected = new Date(tanggalInput.value);
         const today = new Date();
         selected.setHours(0, 0, 0, 0);
@@ -166,24 +171,37 @@
     }
 
     function validateForm() {
-        const isJudulValid = judulInput.value.length >= 5;
-        const isIsiValid = isiInput.value.length >= 10;
+        const isJudulValid = judulInput.value.trim().length >= 3;
+        const isIsiValid = isiInput.value.trim().length >= 3;
         const isTanggalValid = isValidDate();
 
-        tanggalError.classList.toggle('hidden', isTanggalValid);
+        if (tanggalInput.value && !isTanggalValid) {
+            tanggalError.classList.remove('hidden');
+        } else {
+            tanggalError.classList.add('hidden');
+        }
 
         const allValid = isJudulValid && isIsiValid && isTanggalValid;
 
         btnPublikasikan.disabled = !allValid;
-        btnPublikasikan.classList.toggle('bg-gray-400', !allValid);
-        btnPublikasikan.classList.toggle('bg-blue-600', allValid);
-        btnPublikasikan.classList.toggle('cursor-not-allowed', !allValid);
-        btnPublikasikan.classList.toggle('cursor-pointer', allValid);
+        
+        if (allValid) {
+            btnPublikasikan.classList.remove('bg-gray-400', 'cursor-not-allowed');
+            btnPublikasikan.classList.add('bg-blue-600', 'hover:bg-blue-700', 'cursor-pointer');
+        } else {
+            btnPublikasikan.classList.remove('bg-blue-600', 'hover:bg-blue-700', 'cursor-pointer');
+            btnPublikasikan.classList.add('bg-gray-400', 'cursor-not-allowed');
+        }
     }
 
     judulInput.addEventListener('input', validateForm);
     isiInput.addEventListener('input', validateForm);
+    tanggalInput.addEventListener('change', validateForm);
     tanggalInput.addEventListener('input', validateForm);
+    
+    // Initial validation
+    validateForm();
+});
 </script>
 
 

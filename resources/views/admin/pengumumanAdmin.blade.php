@@ -1,4 +1,7 @@
-@extends('layouts.app')
+@extends('layouts.admin-layout')
+
+@section('title', 'Pengumuman')
+
 @section('content')
 
 <div class="max-w-screen space-y-6">
@@ -10,13 +13,13 @@
             @csrf
             <div>
                 <label class="block text-base font-semibold mb-1 text-gray-700">Judul Pengumuman</label>
-                <input type="text" name="judulPengumuman" id="judulPengumuman" minlength="5"
+                <input type="text" name="judulPengumuman" id="judulPengumuman" minlength="3"
                        placeholder="Ketik judul pengumuman yang mau dibuat di sini ..."
                        class="w-full border border-gray-300 rounded-full px-5 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800" required>
             </div>
             <div>
                 <label class="block text-base font-semibold mb-1 text-gray-700">Isi Pengumuman</label>
-                <textarea name="isiPengumuman" id="isiPengumuman" minlength="10"
+                <textarea name="isiPengumuman" id="isiPengumuman" minlength="3"
                           placeholder="Ketik isi pengumuman yang mau dibuat di sini ..."
                           class="w-full border border-gray-300 rounded-2xl px-5 py-3 h-40 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800" required></textarea>
             </div>
@@ -83,13 +86,14 @@
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', function() {
     const judulInput = document.getElementById('judulPengumuman');
     const isiInput = document.getElementById('isiPengumuman');
     const submitBtn = document.getElementById('btnPublikasi');
 
     function toggleButton() {
         const judulValid = judulInput.value.trim().length >= 3;
-        const isiValid = isiInput.value.trim().length >= 10;
+        const isiValid = isiInput.value.trim().length >= 3;
 
         submitBtn.disabled = !(judulValid && isiValid);
 
@@ -104,6 +108,10 @@
 
     judulInput.addEventListener('input', toggleButton);
     isiInput.addEventListener('input', toggleButton);
+    
+    // Initial validation
+    toggleButton();
+});
 </script>
 
 @endsection

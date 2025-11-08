@@ -64,9 +64,33 @@ class IuranController extends Controller
                 'total_bayar' => $request->total_bayar,
                 'status' => 'Belum Bayar',
             ]);
+
+            // Kirim notifikasi ke user (kecuali admin)
+            if ($user->role !== 'admin') {
+                \App\Models\Notification::create([
+                    'user_id' => $user->id,
+                    'type' => 'iuran',
+                    'message' => 'Ayo bayar iuranmu! Anda mendapatkan tagihan iuran sebesar Rp. ' . number_format($request->total_bayar, 0, ',', '.') . ', mohon segera dibayar.',
+                ]);
+
+                // Hapus notifikasi lama, sisakan 5 terbaru
+                $notifToDelete = \App\Models\Notification::where('user_id', $user->id)
+                    ->orderBy('created_at', 'desc')
+                    ->skip(5)
+                    ->take(PHP_INT_MAX)
+                    ->get();
+
+                foreach ($notifToDelete as $notif) {
+                    $notif->delete();
+                }
+            }
         }
 
-        return redirect()->route('pay.index')->with('success', 'Data iuran berhasil ditambahkan untuk semua pengguna.');
+        // Redirect based on user role
+        if (auth()->user()->role === 'admin') {
+            return redirect()->route('admin.bayar-iuran')->with('success', 'Data iuran berhasil ditambahkan untuk semua pengguna.');
+        }
+        return redirect()->route('bayar-iuran')->with('success', 'Data iuran berhasil ditambahkan untuk semua pengguna.');
     }
 
     public function cari(Request $request)
@@ -75,14 +99,14 @@ class IuranController extends Controller
 
         // Validasi no_kk kosong atau tidak valid
         if (empty($no_kk) || !is_string($no_kk)) {
-            return redirect()->route('pay.index')->with('error', 'no kk tidak valid silakan isi yg valid');
+            return redirect()->route('bayar-iuran')->with('error', 'no kk tidak valid silakan isi yg valid');
         }
 
         // Cari user berdasarkan no_kk
         $user = User::where('no_kk', $no_kk)->first();
 
         if (!$user) {
-            return redirect()->route('pay.index')->with('error', 'no kk tidak valid silakan isi yg valid');
+            return redirect()->route('bayar-iuran')->with('error', 'no kk tidak valid silakan isi yg valid');
         }
 
         // Ambil iuran berdasarkan user_id

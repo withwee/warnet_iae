@@ -13,33 +13,22 @@ class PengumumanController extends Controller
     // Tampilkan semua pengumuman
     public function index()
     {
-        try {
-            $token = JWTAuth::getToken() ?? session('jwt_token');
+        $user = auth()->user();
 
-            if (!$token) {
-                return redirect()->route('login.view')->withErrors(['error' => 'Silakan login terlebih dahulu.']);
-            }
-
-            $user = JWTAuth::setToken($token)->authenticate();
-
-            if (!$user) {
-                return redirect()->route('login.view')->withErrors(['error' => 'User tidak ditemukan']);
-            }
-
-            $pengumumans = Pengumuman::latest()->get();
-
-            if ($user->role === 'admin') {
-                return view('admin.pengumumanAdmin', compact('pengumumans'));
-            }
-
-            $pengumumanKhusus = Pengumuman::where('pengumuman_khusus', true)->latest()->first();
-            $pengumumans = Pengumuman::where('pengumuman_khusus', false)->latest()->get();
-
-            return view('pengumuman', compact('pengumumanKhusus', 'pengumumans'));
-
-        } catch (JWTException $e) {
-            return redirect()->route('login.view')->withErrors(['error' => 'Token tidak valid atau kedaluwarsa']);
+        if (!$user) {
+            return redirect()->route('login')->withErrors(['error' => 'Silakan login terlebih dahulu.']);
         }
+
+        $pengumumans = Pengumuman::latest()->get();
+
+        if ($user->role === 'admin') {
+            return view('admin.pengumumanAdmin', compact('pengumumans'));
+        }
+
+        $pengumumanKhusus = Pengumuman::where('pengumuman_khusus', true)->latest()->first();
+        $pengumumans = Pengumuman::where('pengumuman_khusus', false)->latest()->get();
+
+        return view('pengumuman', compact('pengumumanKhusus', 'pengumumans'));
     }
 
     // Simpan pengumuman baru
@@ -47,7 +36,7 @@ class PengumumanController extends Controller
     {
         $request->validate([
             'judulPengumuman' => 'required|string|min:3',
-            'isiPengumuman' => 'required|string|min:10',
+            'isiPengumuman' => 'required|string|min:3',
         ]);
 
         if ($request->has('pengumuman_khusus')) {
@@ -55,7 +44,7 @@ class PengumumanController extends Controller
             Pengumuman::where('pengumuman_khusus', true)->update(['pengumuman_khusus' => false]);
         }
 
-        // Simpan pengumuman baru dan ambil objeknya
+        // Simpan pengumuman baru (global untuk semua user)
         $pengumuman = Pengumuman::create([
             'judulPengumuman' => $request->judulPengumuman,
             'isiPengumuman' => $request->isiPengumuman,
@@ -81,6 +70,12 @@ class PengumumanController extends Controller
             foreach ($notifToDelete as $notif) {
                 $notif->delete();
             }
+        }
+
+        // Redirect based on user role
+        if (auth()->user()->role === 'admin') {
+            return redirect()->route('admin.pengumuman')
+                   ->with('success', 'Pengumuman berhasil ditambahkan dan akan tampil untuk semua user!');
         }
 
         return redirect()->route('pengumuman')->with('success', 'Pengumuman berhasil ditambahkan!');

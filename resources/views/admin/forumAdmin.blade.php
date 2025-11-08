@@ -1,7 +1,9 @@
-@extends('layouts.app')
+@extends('layouts.admin-layout')
+
+@section('title', 'Forum')
 
 @section('content')
-<section class="space-y-4 p-4" x-data="{ openPostMenu: null, openCommentMenu: null }">
+<section class="space-y-4" x-data="{ openPostMenu: null, openCommentMenu: null }">
     <!-- Form untuk membuat postingan baru -->
     <div class="bg-white p-4 rounded-xl shadow">
         <form action="{{ route('admin.forum.store') }}" method="POST" enctype="multipart/form-data">
