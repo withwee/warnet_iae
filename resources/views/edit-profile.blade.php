@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Edit Profile')
+
 @section('content')
 <div class="container mx-auto">
     <h1 class="text-2xl font-bold mb-6">Edit Profile</h1>

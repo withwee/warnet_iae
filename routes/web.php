@@ -55,6 +55,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/bayar-iuran', [UserController::class, 'bayarIuran'])->name('bayar-iuran');
     Route::get('/iuran/cari', [IuranController::class, 'cari'])->name('iuran.cari');
     Route::post('/bayar-iuran', [IuranController::class, 'store'])->name('iuran.store');
+    Route::get('/pay/snap-token/{id}', [IuranController::class, 'getSnapToken']);
+    Route::get('/bayar-iuran/success/{order_id?}', function () {
+    return view('succespay');})->name('iuran.success');
+    Route::post('/bayar-iuran/update-status', [IuranController::class, 'updateStatus']);
+
+
     
     // Notifikasi route
     Route::get('/notifikasi', [UserController::class, 'notifikasi'])->name('notifikasi');

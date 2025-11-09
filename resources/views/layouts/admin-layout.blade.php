@@ -2,6 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Admin Dashboard') - WargaNet</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -113,6 +114,7 @@
                 </svg>
                 Pengumuman
             </a>
+<<<<<<< HEAD
             
             <a href="{{ route('admin.forum') }}" class="sidebar-item {{ Request::routeIs('admin.forum*') || Request::routeIs('forum.*') ? 'active' : '' }}">
                 <svg fill="currentColor" viewBox="0 0 20 20">
@@ -120,6 +122,15 @@
                     <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z"/>
                 </svg>
                 Forum
+=======
+
+            <a href="{{ route('admin.forum') }}" class="sidebar-item {{ Request::routeIs('admin.forum') ? 'active' : '' }}">
+            <svg fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z"/>
+                <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z"/>
+            </svg>
+            Forum
+>>>>>>> 0dfcda3 (benerin navbar, sidebar, bayar, dll)
             </a>
             
             <a href="{{ route('admin.bayar-iuran') }}" class="sidebar-item {{ Request::routeIs('admin.bayar-iuran') || Request::routeIs('iuran.*') ? 'active' : '' }}">
@@ -128,14 +139,19 @@
                 </svg>
                 Bayar Iuran
             </a>
+<<<<<<< HEAD
             
             <a href="{{ route('admin.kalender') }}" class="sidebar-item {{ Request::routeIs('admin.kalender') || Request::routeIs('kegiatan.*') ? 'active' : '' }}">
+=======
+
+            <a href="{{ route('admin.kalender') }}" class="sidebar-item {{ Request::routeIs('admin.kalender') ? 'active' : '' }}">
+>>>>>>> 0dfcda3 (benerin navbar, sidebar, bayar, dll)
                 <svg fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
                 </svg>
                 Kalender
             </a>
-            
+
             <form method="POST" action="{{ route('logout') }}" class="mt-auto">
                 @csrf
                 <button type="submit" class="sidebar-item logout-btn w-full text-left">
@@ -153,21 +169,31 @@
             <div class="header">
                 <h1 class="header-title">@yield('title', 'Dashboard')</h1>
                 <div class="user-info">
-                    <span>{{ auth()->user()->name ?? 'SuperAdmin' }}</span>
-                    <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
-                    </svg>
-                    <a href="{{ route('notifikasi') }}" class="hover:opacity-70 transition-opacity" title="Notifikasi">
-                        <svg class="w-6 h-6 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/>
+                <span>{{ auth()->user()->name ?? 'SuperAdmin' }}</span>
+
+                <a href="{{ route('profile.edit') }}" class="hover:opacity-70 transition-opacity" title="Edit Profil">
+                    @if(auth()->user() && auth()->user()->photo)
+                        <img src="{{ asset('storage/' . auth()->user()->photo) . '?v=' . auth()->user()->updated_at->timestamp }}"
+                            alt="Profile" class="w-8 h-8 rounded-full object-cover border-2 border-gray-300">
+                    @else
+                        <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
                         </svg>
-                    </a>
-                </div>
+                    @endif
+                </a>
+
+                <a href="{{ route('notifikasi') }}" class="hover:opacity-70 transition-opacity" title="Notifikasi">
+                    <svg class="w-6 h-6 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/>
+                    </svg>
+                </a>
+            </div>
             </div>
 
             <!-- Page Content -->
             @yield('content')
         </div>
     </div>
+    @stack('scripts')
 </body>
 </html>

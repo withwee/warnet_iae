@@ -276,4 +276,31 @@ class IuranController extends Controller
 
         $iuran->save();
     }
+    public function updateStatus(Request $request)
+{
+    try {
+        // Misal order_id = "IURAN-5-1731130000"
+        $idBayar = $request->order_id;
+
+        // Ambil angka ID di tengah string
+        if (strpos($idBayar, 'IURAN-') === 0) {
+            $parts = explode('-', $idBayar);
+            if (count($parts) >= 2) {
+                $idBayar = $parts[1]; // hasil: 5
+            }
+        }
+
+        $iuran = Iuran::where('id_bayar', $idBayar)->first();
+        if ($iuran) {
+            $iuran->status = 'Sudah Bayar';
+            $iuran->save();
+            return response()->json(['success' => true]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Iuran tidak ditemukan.'], 404);
+    } catch (\Exception $e) {
+        \Log::error('UpdateStatus error: ' . $e->getMessage());
+        return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+    }
+}
 }

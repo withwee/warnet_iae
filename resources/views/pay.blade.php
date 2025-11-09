@@ -1,5 +1,4 @@
-@extends('layouts.user-layout')
-
+@extends('layouts.app')
 @section('title', 'Bayar Iuran')
 
 @section('content')
@@ -139,10 +138,22 @@ button.addEventListener('click', function () {
 
                 snap.pay(data.snapToken, {
                     onSuccess: function(result) {
-                        statusSpan.textContent = 'Pembayaran berhasil, memuat ulang...';
+                    fetch('/bayar-iuran/update-status', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        body: JSON.stringify({
+                            order_id: result.order_id,
+                            transaction_status: result.transaction_status
+                        })
+                    }).then(() => {
+                        statusSpan.textContent = 'Pembayaran berhasil, menyimpan data...';
                         setTimeout(() => {
                             window.location.href = `/bayar-iuran/success/${result.order_id}`;
                         }, 1000);
+                    });
                     },
                     onPending: function(result) {
                         statusSpan.textContent = 'Menunggu pembayaran...';

@@ -1,5 +1,4 @@
-@extends('layouts.auth-admin')
-
+@extends('layouts.app')
 @section('title', 'Login Admin')
 
 @section('content')
