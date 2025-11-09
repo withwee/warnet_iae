@@ -100,21 +100,21 @@
         <div class="sidebar">
             <div class="sidebar-logo">WargaNet</div>
             
-            <a href="{{ route('admin.dashboardAdmin') }}" class="sidebar-item {{ Request::routeIs('admin.dashboardAdmin') ? 'active' : '' }}">
+            <a href="{{ route('admin.dashboardAdmin') }}" class="sidebar-item {{ Request::routeIs('admin.dashboardAdmin') || Request::routeIs('admin.pengeluaran.*') ? 'active' : '' }}">
                 <svg fill="currentColor" viewBox="0 0 20 20">
                     <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
                 </svg>
                 Dashboard
             </a>
             
-            <a href="{{ route('admin.pengumuman') }}" class="sidebar-item {{ Request::routeIs('admin.pengumuman') ? 'active' : '' }}">
+            <a href="{{ route('admin.pengumuman') }}" class="sidebar-item {{ Request::routeIs('admin.pengumuman') || Request::routeIs('pengumuman.*') ? 'active' : '' }}">
                 <svg fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12,8H4A2,2 0 0,0 2,10V14A2,2 0 0,0 4,16H5V20A1,1 0 0,0 6,21H8A1,1 0 0,0 9,20V16H12L17,20V4L12,8M21.5,12C21.5,13.71 20.54,15.26 19,16V8C20.54,8.74 21.5,10.29 21.5,12Z"/>
                 </svg>
                 Pengumuman
             </a>
             
-            <a href="{{ route('admin.forum') }}" class="sidebar-item {{ Request::routeIs('admin.forum') ? 'active' : '' }}">
+            <a href="{{ route('admin.forum') }}" class="sidebar-item {{ Request::routeIs('admin.forum*') || Request::routeIs('forum.*') ? 'active' : '' }}">
                 <svg fill="currentColor" viewBox="0 0 20 20">
                     <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z"/>
                     <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z"/>
@@ -122,14 +122,14 @@
                 Forum
             </a>
             
-            <a href="{{ route('admin.bayar-iuran') }}" class="sidebar-item {{ Request::routeIs('admin.bayar-iuran') ? 'active' : '' }}">
+            <a href="{{ route('admin.bayar-iuran') }}" class="sidebar-item {{ Request::routeIs('admin.bayar-iuran') || Request::routeIs('iuran.*') ? 'active' : '' }}">
                 <svg fill="currentColor" viewBox="0 0 24 24">
                     <path d="M5,6H23V18H5V6M14,9A3,3 0 0,1 17,12A3,3 0 0,1 14,15A3,3 0 0,1 11,12A3,3 0 0,1 14,9M9,8A2,2 0 0,1 7,10V14A2,2 0 0,1 9,16H19A2,2 0 0,1 21,14V10A2,2 0 0,1 19,8H9M1,10H3V20H19V22H1V10Z"/>
                 </svg>
                 Bayar Iuran
             </a>
             
-            <a href="{{ route('admin.kalender') }}" class="sidebar-item {{ Request::routeIs('admin.kalender') ? 'active' : '' }}">
+            <a href="{{ route('admin.kalender') }}" class="sidebar-item {{ Request::routeIs('admin.kalender') || Request::routeIs('kegiatan.*') ? 'active' : '' }}">
                 <svg fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
                 </svg>

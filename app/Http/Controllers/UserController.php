@@ -228,7 +228,7 @@ class UserController extends Controller
 
         $forums = \App\Models\Forum::with(['user', 'comments.user'])->latest()->get();
         
-        return view('forum', compact('user', 'forums'));
+        return view($user->role === 'admin' ? 'admin.forumAdmin' : 'forum', compact('user', 'forums'));
     }
 
     public function bayarIuran()
