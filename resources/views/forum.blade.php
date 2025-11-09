@@ -81,9 +81,9 @@
                     <p class="text-sm text-gray-500">{{ $forum->created_at->format('d M Y H:i') }}</p>
                 </div>
             </div>
-            {{-- Tombol hapus post untuk admin --}}
-            @if(auth()->user() && auth()->user()->role === 'admin')
-                <form action="{{ route('admin.forum.deletePost', $forum->id) }}" method="POST" onsubmit="return confirm('Yakin hapus post ini?')">
+            {{-- Tombol hapus post untuk admin atau pemilik post --}}
+            @if(auth()->user() && (auth()->user()->role === 'admin' || auth()->user()->id === $forum->user_id))
+                <form action="{{ auth()->user()->role === 'admin' ? route('admin.forum.deletePost', $forum->id) : route('forum.deletePost', $forum->id) }}" method="POST" onsubmit="return confirm('Yakin hapus post ini?')">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="text-red-500 hover:text-red-700 ml-2">
@@ -107,8 +107,8 @@
                        name="komentar" 
                        placeholder="Tulis komentar..." 
                        class="flex-1 rounded-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <button type="submit" class="text-blue-500 hover:text-blue-700">
-                    <iconify-icon icon="mdi:send" class="text-2xl"></iconify-icon>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-full transition-colors">
+                    Balas
                 </button>
             </form>
             
@@ -125,9 +125,9 @@
                     </div>
                     <p class="text-xs text-gray-500 mt-1">{{ $comment->created_at->format('d M Y H:i') }}</p>
                 </div>
-                {{-- Tombol hapus komentar untuk admin --}}
-                @if(auth()->user() && auth()->user()->role === 'admin')
-                    <form action="{{ route('admin.forum.deleteComment', $comment->id) }}" method="POST" onsubmit="return confirm('Yakin hapus komentar ini?')">
+                {{-- Tombol hapus komentar untuk admin atau pemilik komentar --}}
+                @if(auth()->user() && (auth()->user()->role === 'admin' || auth()->user()->id === $comment->user_id))
+                    <form action="{{ auth()->user()->role === 'admin' ? route('admin.forum.deleteComment', $comment->id) : route('forum.deleteComment', $comment->id) }}" method="POST" onsubmit="return confirm('Yakin hapus komentar ini?')">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="text-red-500 hover:text-red-700 ml-2">
