@@ -14,17 +14,25 @@
     <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
 
     <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
         body {
             margin: 0;
             font-family: 'Poppins', sans-serif;
             background: #e8f4f8;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
         .dashboard-container {
             display: flex;
             min-height: 100vh;
+            position: relative;
         }
         .sidebar {
-            width: 200px;
+            width: 250px;
             background: linear-gradient(180deg, #2563eb 0%, #1e40af 100%);
             padding: 1.5rem 1rem;
             display: flex;
@@ -33,6 +41,8 @@
             position: fixed;
             height: 100vh;
             overflow-y: auto;
+            z-index: 1000;
+            transition: all 0.3s ease;
         }
         .sidebar-logo {
             color: white;
@@ -74,10 +84,31 @@
             background: #fee2e2;
         }
         .main-content {
-            margin-left: 200px;
+            margin-left: 250px;
             flex: 1;
             padding: 2rem;
-            overflow-y: auto;
+            min-height: 100vh;
+            width: calc(100% - 250px);
+            transition: all 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 280px;
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+                padding: 1rem;
+            }
+            .main-content.shifted {
+                margin-left: 280px;
+                width: calc(100% - 280px);
+            }
         }
         .header {
             display: flex;

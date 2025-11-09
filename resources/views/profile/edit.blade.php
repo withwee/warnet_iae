@@ -1,6 +1,6 @@
-@extends('layouts.user-layout')
+@extends('layouts.app')
 
-@section('title', 'Profile')
+@section('title', 'Edit Profil')
 
 @section('content')
 @php
