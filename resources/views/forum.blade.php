@@ -81,15 +81,25 @@
                     <p class="text-sm text-gray-500">{{ $forum->created_at->format('d M Y H:i') }}</p>
                 </div>
             </div>
-            {{-- Tombol hapus post untuk admin atau pemilik post --}}
+            {{-- Menu dropdown untuk admin atau pemilik post --}}
             @if(auth()->user() && (auth()->user()->role === 'admin' || auth()->user()->id === $forum->user_id))
-                <form action="{{ auth()->user()->role === 'admin' ? route('admin.forum.deletePost', $forum->id) : route('forum.deletePost', $forum->id) }}" method="POST" onsubmit="return confirm('Yakin hapus post ini?')">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="text-red-500 hover:text-red-700 ml-2">
-                        <iconify-icon icon="mdi:delete"></iconify-icon>
+                <div class="relative">
+                    <button onclick="toggleDropdown('dropdown-post-{{ $forum->id }}')" class="text-gray-500 hover:text-gray-700 p-2">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                        </svg>
                     </button>
-                </form>
+                    <div id="dropdown-post-{{ $forum->id }}" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                        <form id="deletePostForm-{{ $forum->id }}" action="{{ auth()->user()->role === 'admin' ? route('admin.forum.deletePost', $forum->id) : route('forum.deletePost', $forum->id) }}" method="POST">
+                            @csrf
+                            @method('DELETE')
+                            <button type="button" onclick="showDeleteModal(document.getElementById('deletePostForm-{{ $forum->id }}'), 'Apakah Anda yakin ingin menghapus postingan ini?')" class="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2">
+                                <iconify-icon icon="mdi:delete"></iconify-icon>
+                                <span>Hapus Postingan</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
             @endif
         </div>
         
@@ -114,26 +124,36 @@
             
             <!-- Daftar komentar -->
             @foreach($forum->comments as $comment)
-            <div class="flex gap-3 mb-2 items-center">
+            <div class="flex gap-3 mb-2 items-start">
                 <img src="{{ $comment->user->photo ? asset('storage/' . $comment->user->photo) . '?v=' . $comment->user->updated_at->timestamp : asset('images/Foto Profil.jpg') }}" 
                      alt="Profile Photo" 
                      class="w-8 h-8 rounded-full border border-gray-200 object-cover">
-                <div>
+                <div class="flex-1">
                     <div class="bg-gray-100 p-2 rounded-lg">
                         <p class="font-semibold text-sm">{{ $comment->user->name }}</p>
                         <p>{{ $comment->komentar }}</p>
                     </div>
                     <p class="text-xs text-gray-500 mt-1">{{ $comment->created_at->format('d M Y H:i') }}</p>
                 </div>
-                {{-- Tombol hapus komentar untuk admin atau pemilik komentar --}}
+                {{-- Menu dropdown untuk admin atau pemilik komentar --}}
                 @if(auth()->user() && (auth()->user()->role === 'admin' || auth()->user()->id === $comment->user_id))
-                    <form action="{{ auth()->user()->role === 'admin' ? route('admin.forum.deleteComment', $comment->id) : route('forum.deleteComment', $comment->id) }}" method="POST" onsubmit="return confirm('Yakin hapus komentar ini?')">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="text-red-500 hover:text-red-700 ml-2">
-                            <iconify-icon icon="mdi:delete"></iconify-icon>
+                    <div class="relative">
+                        <button onclick="toggleDropdown('dropdown-comment-{{ $comment->id }}')" class="text-gray-500 hover:text-gray-700 p-1">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                            </svg>
                         </button>
-                    </form>
+                        <div id="dropdown-comment-{{ $comment->id }}" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                            <form id="deleteCommentForm-{{ $comment->id }}" action="{{ auth()->user()->role === 'admin' ? route('admin.forum.deleteComment', $comment->id) : route('forum.deleteComment', $comment->id) }}" method="POST">
+                                @csrf
+                                @method('DELETE')
+                                <button type="button" onclick="showDeleteModal(document.getElementById('deleteCommentForm-{{ $comment->id }}'), 'Apakah Anda yakin ingin menghapus komentar ini?')" class="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2">
+                                    <iconify-icon icon="mdi:delete"></iconify-icon>
+                                    <span>Hapus Komentar</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 @endif
             </div>
             @endforeach
@@ -141,4 +161,97 @@
     </div>
     @endforeach
 </section>
+
+<!-- Modal Konfirmasi Delete -->
+<div id="deleteModal" class="hidden fixed inset-0 bg-white bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity duration-300">
+    <div class="bg-white rounded-2xl shadow-2xl px-8 py-6 mx-4 transform transition-all duration-300 scale-95 opacity-0" id="deleteModalCard">
+        <div class="text-center">
+            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4">
+                <svg class="h-8 w-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 mb-3 px-4">Konfirmasi Hapus</h3>
+            <p class="text-sm text-gray-600 mb-6 px-6" id="deleteMessage">Apakah Anda yakin ingin menghapus ini?</p>
+            <div class="flex gap-3 justify-center pt-2">
+                <button onclick="closeDeleteModal()" class="px-10 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-xl transition-all duration-200 text-base">
+                    Batal
+                </button>
+                <button onclick="confirmDelete()" class="px-10 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg text-base">
+                    Ya, Hapus
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let deleteFormToSubmit = null;
+
+function toggleDropdown(dropdownId) {
+    // Tutup semua dropdown lainnya
+    document.querySelectorAll('[id^="dropdown-"]').forEach(dropdown => {
+        if (dropdown.id !== dropdownId) {
+            dropdown.classList.add('hidden');
+        }
+    });
+    
+    // Toggle dropdown yang diklik
+    const dropdown = document.getElementById(dropdownId);
+    dropdown.classList.toggle('hidden');
+}
+
+// Tutup dropdown ketika klik di luar
+document.addEventListener('click', function(event) {
+    if (!event.target.closest('.relative')) {
+        document.querySelectorAll('[id^="dropdown-"]').forEach(dropdown => {
+            dropdown.classList.add('hidden');
+        });
+    }
+});
+
+function showDeleteModal(form, message) {
+    deleteFormToSubmit = form;
+    document.getElementById('deleteMessage').textContent = message;
+    const modal = document.getElementById('deleteModal');
+    const card = document.getElementById('deleteModalCard');
+    
+    modal.classList.remove('hidden');
+    
+    // Trigger animation
+    setTimeout(() => {
+        card.classList.remove('scale-95', 'opacity-0');
+        card.classList.add('scale-100', 'opacity-100');
+    }, 10);
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById('deleteModal');
+    const card = document.getElementById('deleteModalCard');
+    
+    // Animate out
+    card.classList.remove('scale-100', 'opacity-100');
+    card.classList.add('scale-95', 'opacity-0');
+    
+    setTimeout(() => {
+        modal.classList.add('hidden');
+    }, 300);
+    
+    deleteFormToSubmit = null;
+}
+
+function confirmDelete() {
+    if (deleteFormToSubmit) {
+        deleteFormToSubmit.submit();
+    }
+    closeDeleteModal();
+}
+
+// Tutup modal ketika klik di luar
+document.getElementById('deleteModal').addEventListener('click', function(event) {
+    if (event.target === this) {
+        closeDeleteModal();
+    }
+});
+</script>
 @endsection
