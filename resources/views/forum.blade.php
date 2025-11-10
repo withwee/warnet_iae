@@ -82,25 +82,27 @@
                 </div>
             </div>
             {{-- Menu dropdown untuk admin atau pemilik post --}}
-            @if(auth()->user() && (auth()->user()->role === 'admin' || auth()->user()->id === $forum->user_id))
-                <div class="relative">
-                    <button onclick="toggleDropdown('dropdown-post-{{ $forum->id }}')" class="text-gray-500 hover:text-gray-700 p-2">
-                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
-                        </svg>
-                    </button>
-                    <div id="dropdown-post-{{ $forum->id }}" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
-                        <form id="deletePostForm-{{ $forum->id }}" action="{{ auth()->user()->role === 'admin' ? route('admin.forum.deletePost', $forum->id) : route('forum.deletePost', $forum->id) }}" method="POST">
-                            @csrf
-                            @method('DELETE')
-                            <button type="button" onclick="showDeleteModal(document.getElementById('deletePostForm-{{ $forum->id }}'), 'Apakah Anda yakin ingin menghapus postingan ini?')" class="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2">
-                                <iconify-icon icon="mdi:delete"></iconify-icon>
-                                <span>Hapus Postingan</span>
-                            </button>
-                        </form>
+            @auth
+                @if(auth()->user()->role === 'admin' || auth()->user()->id === $forum->user_id)
+                    <div class="relative">
+                        <button onclick="toggleDropdown('dropdown-post-{{ $forum->id }}')" class="text-gray-500 hover:text-gray-700 p-2">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                            </svg>
+                        </button>
+                        <div id="dropdown-post-{{ $forum->id }}" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                            <form id="deletePostForm-{{ $forum->id }}" action="{{ auth()->user()->role === 'admin' ? route('admin.forum.deletePost', $forum->id) : route('forum.deletePost', $forum->id) }}" method="POST">
+                                @csrf
+                                @method('DELETE')
+                                <button type="button" onclick="showDeleteModal(document.getElementById('deletePostForm-{{ $forum->id }}'), 'Apakah Anda yakin ingin menghapus postingan ini?')" class="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2">
+                                    <iconify-icon icon="mdi:delete"></iconify-icon>
+                                    <span>Hapus Postingan</span>
+                                </button>
+                            </form>
+                        </div>
                     </div>
-                </div>
-            @endif
+                @endif
+            @endauth
         </div>
         
         <p class="mb-3">{{ $forum->konten }}</p>
@@ -136,25 +138,27 @@
                     <p class="text-xs text-gray-500 mt-1">{{ $comment->created_at->format('d M Y H:i') }}</p>
                 </div>
                 {{-- Menu dropdown untuk admin atau pemilik komentar --}}
-                @if(auth()->user() && (auth()->user()->role === 'admin' || auth()->user()->id === $comment->user_id))
-                    <div class="relative">
-                        <button onclick="toggleDropdown('dropdown-comment-{{ $comment->id }}')" class="text-gray-500 hover:text-gray-700 p-1">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
-                            </svg>
-                        </button>
-                        <div id="dropdown-comment-{{ $comment->id }}" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
-                            <form id="deleteCommentForm-{{ $comment->id }}" action="{{ auth()->user()->role === 'admin' ? route('admin.forum.deleteComment', $comment->id) : route('forum.deleteComment', $comment->id) }}" method="POST">
-                                @csrf
-                                @method('DELETE')
-                                <button type="button" onclick="showDeleteModal(document.getElementById('deleteCommentForm-{{ $comment->id }}'), 'Apakah Anda yakin ingin menghapus komentar ini?')" class="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2">
-                                    <iconify-icon icon="mdi:delete"></iconify-icon>
-                                    <span>Hapus Komentar</span>
-                                </button>
-                            </form>
+                @auth
+                    @if(auth()->user()->role === 'admin' || auth()->user()->id === $comment->user_id)
+                        <div class="relative">
+                            <button onclick="toggleDropdown('dropdown-comment-{{ $comment->id }}')" class="text-gray-500 hover:text-gray-700 p-1">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                                </svg>
+                            </button>
+                            <div id="dropdown-comment-{{ $comment->id }}" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                                <form id="deleteCommentForm-{{ $comment->id }}" action="{{ auth()->user()->role === 'admin' ? route('admin.forum.deleteComment', $comment->id) : route('forum.deleteComment', $comment->id) }}" method="POST">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="button" onclick="showDeleteModal(document.getElementById('deleteCommentForm-{{ $comment->id }}'), 'Apakah Anda yakin ingin menghapus komentar ini?')" class="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2">
+                                        <iconify-icon icon="mdi:delete"></iconify-icon>
+                                        <span>Hapus Komentar</span>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
-                    </div>
-                @endif
+                    @endif
+                @endauth
             </div>
             @endforeach
         </div>
@@ -203,7 +207,10 @@ function toggleDropdown(dropdownId) {
 
 // Tutup dropdown ketika klik di luar
 document.addEventListener('click', function(event) {
-    if (!event.target.closest('.relative')) {
+    const isDropdownButton = event.target.closest('button[onclick^="toggleDropdown"]');
+    const isDropdownContent = event.target.closest('[id^="dropdown-"]');
+    
+    if (!isDropdownButton && !isDropdownContent) {
         document.querySelectorAll('[id^="dropdown-"]').forEach(dropdown => {
             dropdown.classList.add('hidden');
         });
