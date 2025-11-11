@@ -2,6 +2,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Events\NotificationSent;
 
 class Notification extends Model
 {
@@ -11,4 +12,22 @@ class Notification extends Model
         'read' => 'boolean',
         'read_at' => 'datetime',
     ];
+
+    /**
+     * The "booted" method of the model.
+     */
+    protected static function booted(): void
+    {
+        static::created(function ($notification) {
+            broadcast(new NotificationSent($notification))->toOthers();
+        });
+    }
+
+    /**
+     * Get the user that owns the notification.
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

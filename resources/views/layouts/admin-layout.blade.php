@@ -114,7 +114,6 @@
                 </svg>
                 Pengumuman
             </a>
-<<<<<<< HEAD
             
             <a href="{{ route('admin.forum') }}" class="sidebar-item {{ Request::routeIs('admin.forum*') || Request::routeIs('forum.*') ? 'active' : '' }}">
                 <svg fill="currentColor" viewBox="0 0 20 20">
@@ -122,15 +121,6 @@
                     <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z"/>
                 </svg>
                 Forum
-=======
-
-            <a href="{{ route('admin.forum') }}" class="sidebar-item {{ Request::routeIs('admin.forum') ? 'active' : '' }}">
-            <svg fill="currentColor" viewBox="0 0 20 20">
-                <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z"/>
-                <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z"/>
-            </svg>
-            Forum
->>>>>>> 0dfcda3 (benerin navbar, sidebar, bayar, dll)
             </a>
             
             <a href="{{ route('admin.bayar-iuran') }}" class="sidebar-item {{ Request::routeIs('admin.bayar-iuran') || Request::routeIs('iuran.*') ? 'active' : '' }}">
@@ -139,13 +129,8 @@
                 </svg>
                 Bayar Iuran
             </a>
-<<<<<<< HEAD
             
             <a href="{{ route('admin.kalender') }}" class="sidebar-item {{ Request::routeIs('admin.kalender') || Request::routeIs('kegiatan.*') ? 'active' : '' }}">
-=======
-
-            <a href="{{ route('admin.kalender') }}" class="sidebar-item {{ Request::routeIs('admin.kalender') ? 'active' : '' }}">
->>>>>>> 0dfcda3 (benerin navbar, sidebar, bayar, dll)
                 <svg fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
                 </svg>
@@ -182,10 +167,11 @@
                     @endif
                 </a>
 
-                <a href="{{ route('notifikasi') }}" class="hover:opacity-70 transition-opacity" title="Notifikasi">
+                <a href="{{ route('notifikasi') }}" class="relative hover:opacity-70 transition-opacity" title="Notifikasi" id="notification-bell">
                     <svg class="w-6 h-6 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/>
                     </svg>
+                    <span id="notification-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center hidden">0</span>
                 </a>
             </div>
             </div>
@@ -195,5 +181,110 @@
         </div>
     </div>
     @stack('scripts')
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    @auth
+    // Listen for real-time notifications
+    window.Echo.private('notifications.{{ auth()->id() }}')
+        .listen('.notification.sent', (e) => {
+            console.log('New notification received:', e);
+            
+            // Show browser notification if permitted
+            if (Notification.permission === 'granted') {
+                new Notification('WargaNet - Notifikasi Baru', {
+                    body: e.message,
+                    icon: '/favicon.ico'
+                });
+            }
+            
+            // Update notification badge
+            const badge = document.getElementById('notification-badge');
+            if (badge) {
+                let count = parseInt(badge.textContent) || 0;
+                count++;
+                badge.textContent = count;
+                badge.classList.remove('hidden');
+            }
+            
+            // Show toast notification
+            showToast(e.type, e.message);
+        });
+    
+    // Request notification permission
+    if (Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+    @endauth
+});
+
+// Toast notification function
+function showToast(type, message) {
+    const toast = document.createElement('div');
+    toast.className = 'fixed bottom-4 right-4 bg-white rounded-lg shadow-lg p-4 max-w-sm z-50 animate-slide-in';
+    
+    let icon = '';
+    let iconColor = '';
+    
+    if (type === 'iuran') {
+        icon = 'mdi:cash-multiple';
+        iconColor = 'text-green-600';
+    } else if (type === 'kalender') {
+        icon = 'mdi:calendar';
+        iconColor = 'text-purple-600';
+    } else if (type === 'komentar') {
+        icon = 'mdi:comment';
+        iconColor = 'text-blue-600';
+    } else if (type === 'forum') {
+        icon = 'mdi:forum';
+        iconColor = 'text-blue-600';
+    } else {
+        icon = 'mdi:bullhorn';
+        iconColor = 'text-blue-600';
+    }
+    
+    toast.innerHTML = `
+        <div class="flex items-start gap-3">
+            <div class="flex-shrink-0">
+                <iconify-icon icon="${icon}" width="24" class="${iconColor}"></iconify-icon>
+            </div>
+            <div class="flex-1">
+                <p class="font-semibold text-gray-800 mb-1">Notifikasi Baru</p>
+                <p class="text-sm text-gray-600">${message}</p>
+            </div>
+            <button onclick="this.parentElement.parentElement.remove()" class="text-gray-400 hover:text-gray-600">
+                <iconify-icon icon="mdi:close" width="20"></iconify-icon>
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => toast.remove(), 300);
+    }, 5000);
+}
+</script>
+
+<style>
+@keyframes slide-in {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.animate-slide-in {
+    animation: slide-in 0.3s ease-out;
+    transition: all 0.3s ease-out;
+}
+</style>
 </body>
 </html>

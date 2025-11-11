@@ -49,7 +49,29 @@ class CalendarController extends Controller
             'event_date' => 'required|date',
         ]);
 
-        Event::create($request->all());
+        $event = Event::create($request->all());
+
+        // Send notification to all users except admin
+        $users = \App\Models\User::where('role', '!=', 'admin')->get();
+        foreach ($users as $user) {
+            \App\Models\Notification::create([
+                'user_id' => $user->id,
+                'type' => 'kalender',
+                'message' => 'Acara baru "' . $event->title . '" telah ditambahkan pada tanggal ' . \Carbon\Carbon::parse($event->date)->format('d M Y'),
+            ]);
+
+            // Keep only 5 latest notifications
+            $notifToDelete = \App\Models\Notification::where('user_id', $user->id)
+                ->orderBy('created_at', 'desc')
+                ->skip(5)
+                ->take(PHP_INT_MAX)
+                ->get();
+
+            foreach ($notifToDelete as $notif) {
+                $notif->delete();
+            }
+        }
+
         return Redirect::to('/admin/kalender')->with('success', 'Kegiatan berhasil ditambahkan!');
     }
 }
