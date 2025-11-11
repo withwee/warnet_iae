@@ -177,7 +177,8 @@ class UserController extends Controller
     $month = $request->input('month', now()->month);
     $totalIuran = Iuran::sum('total_bayar');
     $totalPengeluaran = Pengeluaran::sum('amount'); 
-    $pengumumanTerbaru = Pengumuman::latest()->first();
+    // Ambil pengumuman khusus terbaru untuk dashboard user
+    $pengumumanTerbaru = Pengumuman::where('pengumuman_khusus', true)->latest()->first();
     $kalenderKegiatan = Kegiatan::whereMonth('tanggal', $month)
                                 ->whereYear('tanggal', $year)
                                 ->get();

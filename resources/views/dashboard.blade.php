@@ -3,30 +3,38 @@
 @section('content')
             <!-- Announcement -->
             @if($pengumumanTerbaru)
-            <div class="announcement-box">
-                <div class="announcement-content">
-                    <h3>{{ $pengumumanTerbaru->judul ?? 'Tidak ada pemberitahuan' }}</h3>
-                    <p>{{ $pengumumanTerbaru->isi ?? 'Ditunggu saja jika ada pemberitahuan terbaru dari pak rt.' }}</p>
-                    <span class="announcement-date">{{ $pengumumanTerbaru->created_at ? $pengumumanTerbaru->created_at->format('d F Y') : '3 Maret 2025' }}</span>
+            <div class="bg-blue-500 rounded-2xl w-full relative flex justify-between items-center px-6 py-6 overflow-hidden">
+                <div class="text-white space-y-3 z-10">
+                    <h1 class="font-bold text-2xl md:text-[22px] w-full md:w-[36rem] leading-snug">
+                        {{ $pengumumanTerbaru->judulPengumuman }}
+                    </h1>
+                    <p class="w-full md:w-[90%] text-sm md:text-base">
+                        {{ $pengumumanTerbaru->isiPengumuman }}
+                    </p>
+                    <div class="bg-white w-fit px-8 py-1.5 text-blue-500 text-sm md:text-base text-center rounded-3xl font-semibold">
+                        {{ $pengumumanTerbaru->created_at->format('d M Y') }}
+                    </div>
                 </div>
-                <svg class="announcement-icon" viewBox="0 0 100 100" fill="none">
-                    <circle cx="50" cy="50" r="45" fill="white" opacity="0.2"/>
-                    <path d="M30 40L50 25L70 40V70L50 85L30 70V40Z" fill="white" opacity="0.3"/>
-                    <circle cx="50" cy="50" r="15" fill="white"/>
-                </svg>
+                <div class="w-48 absolute bottom-0 right-0">
+                    <img src="http://127.0.0.1:8000/images/toa.png" alt="toa">
+                </div>
             </div>
             @else
-            <div class="announcement-box">
-                <div class="announcement-content">
-                    <h3>Tidak ada pemberitahuan</h3>
-                    <p>Ditunggu saja jika ada pemberitahuan terbaru dari pak rt.</p>
-                    <span class="announcement-date">{{ now()->format('d F Y') }}</span>
+            <div class="bg-blue-500 rounded-2xl w-full relative flex justify-between items-center px-6 py-6 overflow-hidden">
+                <div class="text-white space-y-3 z-10">
+                    <h1 class="font-bold text-2xl md:text-[22px] w-full md:w-[36rem] leading-snug">
+                        Tidak ada pemberitahuan
+                    </h1>
+                    <p class="w-full md:w-[90%] text-sm md:text-base">
+                        Ditunggu saja jika ada pemberitahuan terbaru dari pak rt.
+                    </p>
+                    <div class="bg-white w-fit px-8 py-1.5 text-blue-500 text-sm md:text-base text-center rounded-3xl font-semibold">
+                        {{ now()->format('d M Y') }}
+                    </div>
                 </div>
-                <svg class="announcement-icon" viewBox="0 0 100 100" fill="none">
-                    <circle cx="50" cy="50" r="45" fill="white" opacity="0.2"/>
-                    <path d="M30 40L50 25L70 40V70L50 85L30 70V40Z" fill="white" opacity="0.3"/>
-                    <circle cx="50" cy="50" r="15" fill="white"/>
-                </svg>
+                <div class="w-48 absolute bottom-0 right-0">
+                    <img src="http://127.0.0.1:8000/images/toa.png" alt="toa">
+                </div>
             </div>
             @endif
 
