@@ -260,6 +260,16 @@
                 </svg>
                 Kalender
             </a>
+            
+            <a href="{{ route('chat.index') }}" class="sidebar-item {{ Request::routeIs('chat.*') ? 'active' : '' }}">
+                <svg fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+                    <circle cx="12" cy="10" r="1"/>
+                    <circle cx="8" cy="10" r="1"/>
+                    <circle cx="16" cy="10" r="1"/>
+                </svg>
+                Group Chat
+            </a>
         @else
             <a href="{{ route('dashboard') }}" class="sidebar-item {{ Request::is('dashboard*') ? 'active' : '' }}">
                 <svg fill="currentColor" viewBox="0 0 20 20">
@@ -291,6 +301,16 @@
                     <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 00 2 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
                 </svg>
                 Kalender
+            </a>
+            
+            <a href="{{ route('chat.index') }}" class="sidebar-item {{ Request::routeIs('chat.*') ? 'active' : '' }}">
+                <svg fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+                    <circle cx="12" cy="10" r="1"/>
+                    <circle cx="8" cy="10" r="1"/>
+                    <circle cx="16" cy="10" r="1"/>
+                </svg>
+                Group Chat
             </a>
         @endif
 

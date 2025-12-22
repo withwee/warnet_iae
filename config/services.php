@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'grpc_chat' => [
+        'host' => env('GRPC_CHAT_HOST', 'localhost:50051'),
+        'web_host' => env('GRPC_CHAT_WEB_HOST', 'http://localhost:8080'),
+    ],
+
 ];

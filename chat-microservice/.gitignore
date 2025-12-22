@@ -1,0 +1,35 @@
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+*.log
+
+# Go workspace file
+go.work
+
+# Environment variables
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+/chat-server
+/bin/
+/dist/
+
+# Dependencies
+/vendor/
+
+# Docker volumes
+*.db

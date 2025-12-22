@@ -1,0 +1,173 @@
+syntax = "proto3";
+
+package chat;
+
+option go_package = "github.com/warnet_iae/chat-microservice/proto";
+
+// Chat Service Definition
+service ChatService {
+  // Group Management
+  rpc CreateGroup(CreateGroupRequest) returns (Group);
+  rpc JoinGroup(JoinGroupRequest) returns (JoinGroupResponse);
+  rpc LeaveGroup(LeaveGroupRequest) returns (LeaveGroupResponse);
+  rpc GetGroupMembers(GetGroupMembersRequest) returns (GroupMembersResponse);
+  rpc GetUserGroups(GetUserGroupsRequest) returns (UserGroupsResponse);
+  
+  // Messaging - Bidirectional Streaming
+  rpc StreamMessages(stream MessageRequest) returns (stream MessageResponse);
+  
+  // Message History
+  rpc GetMessageHistory(GetHistoryRequest) returns (MessageHistoryResponse);
+  
+  // Typing Indicators
+  rpc SendTypingIndicator(TypingRequest) returns (TypingResponse);
+  
+  // User Status
+  rpc UpdateUserStatus(UserStatusRequest) returns (UserStatusResponse);
+}
+
+// Group Management Messages
+message CreateGroupRequest {
+  string name = 1;
+  string description = 2;
+  repeated int64 member_ids = 3;
+  int64 created_by = 4;
+  string jwt_token = 5;
+}
+
+message Group {
+  int64 id = 1;
+  string name = 2;
+  string description = 3;
+  repeated int64 member_ids = 4;
+  int64 created_by = 5;
+  int64 created_at = 6;
+  int64 updated_at = 7;
+}
+
+message JoinGroupRequest {
+  int64 group_id = 1;
+  int64 user_id = 2;
+  string jwt_token = 3;
+}
+
+message JoinGroupResponse {
+  bool success = 1;
+  string message = 2;
+  Group group = 3;
+}
+
+message LeaveGroupRequest {
+  int64 group_id = 1;
+  int64 user_id = 2;
+  string jwt_token = 3;
+}
+
+message LeaveGroupResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message GetGroupMembersRequest {
+  int64 group_id = 1;
+  string jwt_token = 2;
+}
+
+message GroupMembersResponse {
+  repeated User members = 1;
+}
+
+message GetUserGroupsRequest {
+  int64 user_id = 1;
+  string jwt_token = 2;
+}
+
+message UserGroupsResponse {
+  repeated Group groups = 1;
+}
+
+// User Messages
+message User {
+  int64 id = 1;
+  string name = 2;
+  string email = 3;
+  string avatar = 4;
+  bool online = 5;
+  int64 last_seen = 6;
+}
+
+// Chat Messages
+message MessageRequest {
+  int64 group_id = 1;
+  int64 user_id = 2;
+  string content = 3;
+  MessageType type = 4;
+  string jwt_token = 5;
+  repeated string attachments = 6;
+  int64 reply_to = 7; // Message ID if replying
+}
+
+enum MessageType {
+  TEXT = 0;
+  IMAGE = 1;
+  FILE = 2;
+  SYSTEM = 3;
+  VOICE = 4;
+  VIDEO = 5;
+}
+
+message MessageResponse {
+  int64 id = 1;
+  int64 group_id = 2;
+  int64 user_id = 3;
+  string user_name = 4;
+  string user_avatar = 5;
+  string content = 6;
+  MessageType type = 7;
+  int64 timestamp = 8;
+  repeated string attachments = 9;
+  int64 reply_to = 10;
+  bool is_edited = 11;
+  repeated int64 read_by = 12; // User IDs who read this message
+}
+
+// Message History
+message GetHistoryRequest {
+  int64 group_id = 1;
+  int32 limit = 2;
+  int64 before_id = 3; // For pagination
+  string jwt_token = 4;
+}
+
+message MessageHistoryResponse {
+  repeated MessageResponse messages = 1;
+  bool has_more = 2;
+  int64 oldest_message_id = 3;
+}
+
+// Typing Indicators
+message TypingRequest {
+  int64 group_id = 1;
+  int64 user_id = 2;
+  bool is_typing = 3;
+  string jwt_token = 4;
+}
+
+message TypingResponse {
+  bool success = 1;
+  int64 user_id = 2;
+  string user_name = 3;
+  bool is_typing = 4;
+}
+
+// User Status
+message UserStatusRequest {
+  int64 user_id = 1;
+  bool online = 2;
+  string jwt_token = 3;
+}
+
+message UserStatusResponse {
+  bool success = 1;
+  string message = 2;
+}

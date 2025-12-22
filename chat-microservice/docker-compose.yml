@@ -1,0 +1,92 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database for Chat
+  chat-postgres:
+    image: postgres:15-alpine
+    container_name: chat-postgres
+    environment:
+      POSTGRES_DB: chat_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+    ports:
+      - "5433:5432"
+    volumes:
+      - chat-postgres-data:/var/lib/postgresql/data
+    networks:
+      - chat-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for Pub/Sub and Caching
+  chat-redis:
+    image: redis:7-alpine
+    container_name: chat-redis
+    ports:
+      - "6380:6379"
+    networks:
+      - chat-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # gRPC Chat Service
+  chat-grpc:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chat-grpc-server
+    ports:
+      - "50051:50051"
+    environment:
+      - GRPC_PORT=50051
+      - DB_HOST=chat-postgres
+      - DB_PORT=5432
+      - DB_DATABASE=chat_db
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=secret
+      - REDIS_HOST=chat-redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+      - JWT_SECRET=your-laravel-jwt-secret-key
+      - LARAVEL_API_URL=http://host.docker.internal:8000/api
+      - APP_ENV=development
+      - LOG_LEVEL=debug
+    depends_on:
+      chat-postgres:
+        condition: service_healthy
+      chat-redis:
+        condition: service_healthy
+    networks:
+      - chat-network
+    restart: unless-stopped
+
+  # Envoy Proxy for gRPC-Web
+  envoy:
+    image: envoyproxy/envoy:v1.28-latest
+    container_name: chat-envoy-proxy
+    ports:
+      - "8080:8080"
+      - "9901:9901"
+    volumes:
+      - ./envoy.yaml:/etc/envoy/envoy.yaml:ro
+    command: /usr/local/bin/envoy -c /etc/envoy/envoy.yaml --log-level info
+    depends_on:
+      - chat-grpc
+    networks:
+      - chat-network
+    restart: unless-stopped
+
+networks:
+  chat-network:
+    driver: bridge
+    name: chat-network
+
+volumes:
+  chat-postgres-data:
+    name: chat-postgres-data

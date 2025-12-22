@@ -90,6 +90,45 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/admin/pengeluaran', [AdminController::class, 'storePengeluaran'])
         ->middleware('admin')
         ->name('admin.pengeluaran.store');
+    
+    // Chat Routes
+    Route::prefix('chat')->name('chat.')->group(function () {
+        Route::get('/', function () {
+            // Preload user's groups for instant display
+            $user = Auth::user();
+            $groups = \App\Models\ChatGroup::whereHas('members', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->withCount('members')
+            ->select('id', 'name', 'description', 'created_at')
+            ->latest()
+            ->get()
+            ->map(function ($group) {
+                return [
+                    'id' => $group->id,
+                    'name' => $group->name,
+                    'description' => $group->description,
+                    'member_count' => $group->members_count,
+                    'created_at' => $group->created_at->toISOString(),
+                ];
+            });
+            
+            return view('chat-demo', ['initialGroups' => $groups]);
+        })->name('index');
+        
+        Route::get('/groups', [\App\Http\Controllers\ChatController::class, 'index'])->name('groups.index');
+        Route::get('/groups/available', [\App\Http\Controllers\ChatController::class, 'availableGroups'])->name('groups.available');
+        Route::post('/groups', [\App\Http\Controllers\ChatController::class, 'store'])->name('groups.store');
+        Route::get('/groups/{id}', [\App\Http\Controllers\ChatController::class, 'show'])->name('groups.show');
+        Route::post('/groups/{id}/join', [\App\Http\Controllers\ChatController::class, 'join'])->name('groups.join');
+        Route::post('/groups/{id}/leave', [\App\Http\Controllers\ChatController::class, 'leave'])->name('groups.leave');
+        Route::get('/groups/{id}/messages', [\App\Http\Controllers\ChatController::class, 'messages'])->name('groups.messages');
+        Route::post('/groups/{id}/messages', [\App\Http\Controllers\ChatController::class, 'sendMessage'])->name('groups.sendMessage');
+        Route::post('/groups/{id}/typing', [\App\Http\Controllers\ChatController::class, 'updateTypingStatus'])->name('groups.typing');
+        Route::get('/groups/{id}/typing', [\App\Http\Controllers\ChatController::class, 'getTypingUsers'])->name('groups.typingUsers');
+        Route::get('/users', [\App\Http\Controllers\ChatController::class, 'users'])->name('users');
+    });
+
 });
 
 Route::middleware('auth')->group(function () {
