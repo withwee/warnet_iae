@@ -31,6 +31,38 @@ Route::middleware('auth:api')->group(function () {
         // Message history
         Route::get('/groups/{groupId}/messages', [ChatGroupController::class, 'messages']);
     });
+
+    // Pengumuman Routes
+    Route::get('/pengumuman', [App\Http\Controllers\PengumumanController::class, 'indexApi']);
+    Route::post('/pengumuman', [App\Http\Controllers\PengumumanController::class, 'storeApi']);
+    Route::put('/pengumuman/{id}', [App\Http\Controllers\PengumumanController::class, 'updateApi']);
+    Route::delete('/pengumuman/{id}', [App\Http\Controllers\PengumumanController::class, 'destroyApi']);
+
+    // Forum Routes
+    Route::get('/forum', [App\Http\Controllers\ForumController::class, 'indexApi']);
+    Route::post('/forum', [App\Http\Controllers\ForumController::class, 'storeApi']);
+    Route::post('/forum/{id}/reply', [App\Http\Controllers\ForumController::class, 'replyApi']);
+    Route::delete('/forum/post/{id}', [App\Http\Controllers\ForumController::class, 'deletePostApi']);
+    Route::delete('/forum/comment/{id}', [App\Http\Controllers\ForumController::class, 'deleteCommentApi']);
+
+    // Kalender/Kegiatan Routes
+    Route::get('/kegiatan', [App\Http\Controllers\KegiatanController::class, 'indexApi']);
+    Route::post('/kegiatan', [App\Http\Controllers\KegiatanController::class, 'storeApi']);
+    Route::put('/kegiatan/{id}', [App\Http\Controllers\KegiatanController::class, 'updateApi']);
+    Route::delete('/kegiatan/{id}', [App\Http\Controllers\KegiatanController::class, 'destroyApi']);
+
+    // Iuran/Pembayaran Routes
+    Route::get('/iuran', [App\Http\Controllers\IuranController::class, 'indexApi']);
+    Route::post('/iuran', [App\Http\Controllers\IuranController::class, 'storeApi']);
+    Route::get('/iuran/{id}', [App\Http\Controllers\IuranController::class, 'showApi']);
+
+    // Notifikasi Route
+    Route::get('/notifikasi', [App\Http\Controllers\UserController::class, 'notifikasiApi']);
+
+    // Profile Routes
+    Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'showApi']);
+    Route::patch('/profile', [App\Http\Controllers\ProfileController::class, 'updateApi']);
+    Route::delete('/profile', [App\Http\Controllers\ProfileController::class, 'destroyApi']);
 });
 
 // Midtrans Payment Callback (public)

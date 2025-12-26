@@ -128,4 +128,50 @@ class PengumumanController extends Controller
         return redirect()->route('pengumuman')->with('success', 'Status pengumuman berhasil diubah!');
     }
 
+    // Get all announcements for API
+    public function indexApi(Request $request)
+    {
+        $pengumumans = Pengumuman::latest()->get();
+
+        return response()->json($pengumumans);
+    }
+
+    public function storeApi(Request $request)
+    {
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'judulPengumuman' => 'required|string|min:3',
+            'isiPengumuman' => 'required|string|min:3',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $pengumuman = Pengumuman::create($request->all());
+
+        return response()->json($pengumuman, 201);
+    }
+
+    public function updateApi(Request $request, $id)
+    {
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'judulPengumuman' => 'sometimes|required|string|min:3',
+            'isiPengumuman' => 'sometimes|required|string|min:3',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $pengumuman = Pengumuman::findOrFail($id);
+        $pengumuman->update($request->all());
+
+        return response()->json($pengumuman);
+    }
+
+    public function destroyApi($id)
+    {
+        Pengumuman::destroy($id);
+        return response()->json(null, 204);
+    }
 }

@@ -131,4 +131,86 @@ class ForumController extends Controller
 
         return redirect()->back()->with('success', 'Komentar berhasil dihapus.');
     }
+
+    // API Methods
+    public function indexApi()
+    {
+        $forums = Forum::with(['user', 'comments.user'])->latest()->get();
+        return response()->json($forums);
+    }
+
+    public function storeApi(Request $request)
+    {
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'konten' => 'required|string',
+            'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $user = auth()->user();
+
+        $gambarPath = $request->hasFile('gambar') 
+            ? $request->file('gambar')->store('photos', 'public') 
+            : null;
+
+        $forum = Forum::create([
+            'user_id' => $user->id,
+            'konten' => $request->konten,
+            'gambar' => $gambarPath,
+        ]);
+
+        return response()->json($forum->load(['user', 'comments.user']), 201);
+    }
+
+    public function replyApi(Request $request, $forumId)
+    {
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'komentar' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $user = auth()->user();
+
+        $comment = Comment::create([
+            'forum_id' => $forumId,
+            'user_id' => $user->id,
+            'komentar' => $request->komentar,
+        ]);
+
+        return response()->json($comment->load('user'), 201);
+    }
+
+    public function deletePostApi($id)
+    {
+        $forum = Forum::findOrFail($id);
+        $user = auth()->user();
+
+        if ($forum->user_id !== $user->id && $user->role !== 'admin') {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $forum->delete();
+
+        return response()->json(null, 204);
+    }
+
+    public function deleteCommentApi($id)
+    {
+        $comment = Comment::findOrFail($id);
+        $user = auth()->user();
+
+        if ($comment->user_id !== $user->id && $user->role !== 'admin') {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $comment->delete();
+
+        return response()->json(null, 204);
+    }
 }

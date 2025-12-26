@@ -16,7 +16,6 @@ class IuranController extends Controller
         $user = null;
         $no_kk = null;
 
-        // Check if payment success data is passed via session or query
         if ($request->session()->has('payment_success_id')) {
             $idBayar = $request->session()->get('payment_success_id');
             $iuran = Iuran::find($idBayar);
@@ -25,7 +24,6 @@ class IuranController extends Controller
                 $iurans = [$iuran];
                 $no_kk = $user ? $user->no_kk : null;
             }
-            // Remove from session after use
             $request->session()->forget('payment_success_id');
         } elseif ($request->query('payment_success_id')) {
             $idBayar = $request->query('payment_success_id');
@@ -47,16 +45,13 @@ class IuranController extends Controller
 
     public function store(Request $request)
     {
-        // Validasi input
         $request->validate([
             'jenis_iuran' => 'required|string|max:255',
             'total_bayar' => 'required|numeric|min:0',
         ]);
 
-        // Ambil semua data pengguna (nomor KK)
         $users = User::all();
 
-        // Loop melalui setiap pengguna dan tambahkan data iuran
         foreach ($users as $user) {
             Iuran::create([
                 'user_id' => $user->id,
@@ -65,7 +60,6 @@ class IuranController extends Controller
                 'status' => 'Belum Bayar',
             ]);
 
-            // Kirim notifikasi ke user (kecuali admin)
             if ($user->role !== 'admin') {
                 \App\Models\Notification::create([
                     'user_id' => $user->id,
@@ -73,7 +67,6 @@ class IuranController extends Controller
                     'message' => 'Ayo bayar iuranmu! Anda mendapatkan tagihan iuran sebesar Rp. ' . number_format($request->total_bayar, 0, ',', '.') . ', mohon segera dibayar.',
                 ]);
 
-                // Hapus notifikasi lama, sisakan 5 terbaru
                 $notifToDelete = \App\Models\Notification::where('user_id', $user->id)
                     ->orderBy('created_at', 'desc')
                     ->skip(5)
@@ -86,7 +79,6 @@ class IuranController extends Controller
             }
         }
 
-        // Redirect based on user role
         if (auth()->user()->role === 'admin') {
             return redirect()->route('admin.bayar-iuran')->with('success', 'Data iuran berhasil ditambahkan untuk semua pengguna.');
         }
@@ -97,19 +89,16 @@ class IuranController extends Controller
     {
         $no_kk = $request->no_kk;
 
-        // Validasi no_kk kosong atau tidak valid
         if (empty($no_kk) || !is_string($no_kk)) {
             return redirect()->route('bayar-iuran')->with('error', 'no kk tidak valid silakan isi yg valid');
         }
 
-        // Cari user berdasarkan no_kk
         $user = User::where('no_kk', $no_kk)->first();
 
         if (!$user) {
             return redirect()->route('bayar-iuran')->with('error', 'no kk tidak valid silakan isi yg valid');
         }
 
-        // Ambil iuran berdasarkan user_id
         $iurans = Iuran::where('user_id', $user->id)->get();
 
         return view('pay', compact('iurans', 'user', 'no_kk'));
@@ -123,13 +112,11 @@ class IuranController extends Controller
             return redirect()->back()->with('error', 'Data iuran tidak ditemukan.');
         }
 
-        // Konfigurasi Midtrans
         Config::$serverKey = config('midtrans.server_key');
         Config::$isProduction = config('midtrans.is_production');
         Config::$isSanitized = true;
         Config::$is3ds = true;
 
-        // Data untuk Payment Link
         $params = [
             'transaction_details' => [
                 'order_id' => 'IURAN-' . $iuran->id_bayar . '-' . time(),
@@ -149,7 +136,6 @@ class IuranController extends Controller
             ],
         ];
 
-        // Buat Payment Link
         try {
             $paymentLink = Snap::createTransaction($params);
             return redirect($paymentLink->redirect_url);
@@ -159,42 +145,42 @@ class IuranController extends Controller
     }
 
     public function getSnapToken($id)
-{
-    $iuran = Iuran::with('user')->find($id);
+    {
+        $iuran = Iuran::with('user')->find($id);
 
-    if (!$iuran || !$iuran->user || !$iuran->user->email) {
-        return response()->json(['error' => 'Data iuran atau pengguna tidak valid.'], 404);
+        if (!$iuran || !$iuran->user || !$iuran->user->email) {
+            return response()->json(['error' => 'Data iuran atau pengguna tidak valid.'], 404);
+        }
+
+        Config::$serverKey = config('midtrans.server_key');
+        Config::$isProduction = config('midtrans.is_production');
+        Config::$isSanitized = true;
+        Config::$is3ds = true;
+
+        $params = [
+            'transaction_details' => [
+                'order_id' => 'IURAN-' . $iuran->id_bayar . '-' . time(),
+                'gross_amount' => $iuran->total_bayar,
+            ],
+            'customer_details' => [
+                'first_name' => $iuran->user->name,
+                'email' => $iuran->user->email,
+            ],
+            'item_details' => [[
+                'id' => $iuran->id_bayar,
+                'price' => $iuran->total_bayar,
+                'quantity' => 1,
+                'name' => $iuran->jenis_iuran,
+            ]],
+        ];
+
+        try {
+            $snapToken = Snap::getSnapToken($params);
+            return response()->json(['snapToken' => $snapToken]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
-
-    Config::$serverKey = config('midtrans.server_key');
-    Config::$isProduction = config('midtrans.is_production');
-    Config::$isSanitized = true;
-    Config::$is3ds = true;
-
-    $params = [
-        'transaction_details' => [
-            'order_id' => 'IURAN-' . $iuran->id_bayar . '-' . time(),
-            'gross_amount' => $iuran->total_bayar,
-        ],
-        'customer_details' => [
-            'first_name' => $iuran->user->name,
-            'email' => $iuran->user->email,
-        ],
-        'item_details' => [[
-            'id' => $iuran->id_bayar,
-            'price' => $iuran->total_bayar,
-            'quantity' => 1,
-            'name' => $iuran->jenis_iuran,
-        ]],
-    ];
-
-    try {
-        $snapToken = Snap::getSnapToken($params);
-        return response()->json(['snapToken' => $snapToken]);
-    } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage()], 500);
-    }
-}
 
     public function bayar($id)
     {
@@ -204,24 +190,22 @@ class IuranController extends Controller
             return redirect()->back()->with('error', 'Data iuran tidak ditemukan.');
         }
 
-        // Konfigurasi Midtrans
         Config::$serverKey = config('midtrans.server_key');
         Config::$isProduction = config('midtrans.is_production');
         Config::$isSanitized = true;
         Config::$is3ds = true;
 
-        // Data transaksi
-    $params = [
-    'transaction_details' => [
-        'order_id' => 'IURAN-' . $iuran->id_bayar . '-' . time(), 
-        'gross_amount' => $iuran->total_bayar,
-    ],
-    'customer_details' => [
-        'first_name' => $iuran->user->name,
-        'email' => $iuran->user->email,
-    ],
-];
-        // Buat transaksi
+        $params = [
+            'transaction_details' => [
+                'order_id' => 'IURAN-' . $iuran->id_bayar . '-' . time(), 
+                'gross_amount' => $iuran->total_bayar,
+            ],
+            'customer_details' => [
+                'first_name' => $iuran->user->name,
+                'email' => $iuran->user->email,
+            ],
+        ];
+        
         $snapToken = Snap::getSnapToken($params);
 
         return view('pay', compact('snapToken', 'iuran'));
@@ -245,7 +229,6 @@ class IuranController extends Controller
             'payment_success_id' => $idBayar,
         ]);
     }
-
 
     public function notificationHandler(Request $request)
     {
@@ -276,31 +259,78 @@ class IuranController extends Controller
 
         $iuran->save();
     }
+
     public function updateStatus(Request $request)
-{
-    try {
-        // Misal order_id = "IURAN-5-1731130000"
-        $idBayar = $request->order_id;
+    {
+        try {
+            $idBayar = $request->order_id;
 
-        // Ambil angka ID di tengah string
-        if (strpos($idBayar, 'IURAN-') === 0) {
-            $parts = explode('-', $idBayar);
-            if (count($parts) >= 2) {
-                $idBayar = $parts[1]; // hasil: 5
+            if (strpos($idBayar, 'IURAN-') === 0) {
+                $parts = explode('-', $idBayar);
+                if (count($parts) >= 2) {
+                    $idBayar = $parts[1];
+                }
             }
-        }
 
-        $iuran = Iuran::where('id_bayar', $idBayar)->first();
-        if ($iuran) {
-            $iuran->status = 'Sudah Bayar';
-            $iuran->save();
-            return response()->json(['success' => true]);
-        }
+            $iuran = Iuran::where('id_bayar', $idBayar)->first();
+            if ($iuran) {
+                $iuran->status = 'Sudah Bayar';
+                $iuran->save();
+                return response()->json(['success' => true]);
+            }
 
-        return response()->json(['success' => false, 'message' => 'Iuran tidak ditemukan.'], 404);
-    } catch (\Exception $e) {
-        \Log::error('UpdateStatus error: ' . $e->getMessage());
-        return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+            return response()->json(['success' => false, 'message' => 'Iuran tidak ditemukan.'], 404);
+        } catch (\Exception $e) {
+            \Log::error('UpdateStatus error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
     }
-}
+
+    // API Methods
+    public function indexApi(Request $request)
+    {
+        $user = auth()->user();
+        $iurans = Iuran::where('user_id', $user->id)->latest()->get();
+        return response()->json($iurans);
+    }
+
+    public function storeApi(Request $request)
+    {
+        if (auth()->user()->role !== 'admin') {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'jenis_iuran' => 'required|string|max:255',
+            'total_bayar' => 'required|numeric|min:0',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $users = User::all();
+        foreach ($users as $user) {
+            Iuran::create([
+                'user_id' => $user->id,
+                'jenis_iuran' => $request->jenis_iuran,
+                'total_bayar' => $request->total_bayar,
+                'status' => 'Belum Bayar',
+            ]);
+        }
+
+        return response()->json(['message' => 'Data iuran berhasil ditambahkan untuk semua pengguna.'], 201);
+    }
+
+    public function showApi($id)
+    {
+        $iuran = Iuran::with('user')->findOrFail($id);
+        $user = auth()->user();
+
+        if ($user->role !== 'admin' && $iuran->user_id !== $user->id) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        return response()->json($iuran);
+    }
 }

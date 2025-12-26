@@ -108,27 +108,49 @@ class UserController extends Controller
     // USER LOGIN
     public function login(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'nik'      => 'required|digits:16',
+        $credentials = $request->only('email', 'password', 'nik');
+
+        $validator = Validator::make($credentials, [
+            'email'    => 'required_without:nik|email',
+            'nik'      => 'required_without:email|digits:16',
             'password' => 'required|string|min:8',
-        ], [
-            'nik.required'  => 'NIK wajib diisi.',
-            'nik.digits'    => 'NIK harus terdiri dari 16 digit.',
-            'password.required' => 'Password wajib diisi.',
-            'password.min'       => 'Password minimal 8 karakter.',
         ]);
 
         if ($validator->fails()) {
+            if ($request->expectsJson()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
             return back()->withErrors($validator)->withInput();
         }
 
-        $user = User::where('nik', $request->nik)->first();
+        $user = $request->has('email') 
+            ? User::where('email', $credentials['email'])->first()
+            : User::where('nik', $credentials['nik'])->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return back()->withErrors(['error' => 'NIK atau Password salah'])->withInput();
+        if (!$user || !Hash::check($credentials['password'], $user->password)) {
+            if ($request->expectsJson()) {
+                return response()->json(['error' => 'Invalid credentials'], 401);
+            }
+            return back()->withErrors(['error' => 'NIK/Email atau Password salah'])->withInput();
         }
 
-        $token = JWTAuth::fromUser($user);
+        try {
+            if (!$token = JWTAuth::fromUser($user)) {
+                return response()->json(['error' => 'could_not_create_token'], 500);
+            }
+        } catch (JWTException $e) {
+            return response()->json(['error' => 'could_not_create_token'], 500);
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Login berhasil',
+                'access_token' => $token,
+                'token_type' => 'bearer',
+                'expires_in' => auth('api')->factory()->getTTL() * 60,
+                'user' => $user
+            ]);
+        }
 
         session([
             'jwt_token' => $token,
@@ -292,5 +314,16 @@ class UserController extends Controller
         }
 
         return $user;
+    }
+
+    // API Methods
+    public function notifikasiApi()
+    {
+        $user = auth()->user();
+        $notifikasis = \App\Models\Notification::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json($notifikasis);
     }
 }

@@ -54,5 +54,64 @@ class KegiatanController extends Controller
                ->with('success', 'Kegiatan berhasil dibuat');
     }
 
-    
+    public function update(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'judul' => 'required|string|min:3|max:100',
+            'deskripsi' => 'required|string|min:3|max:500',
+            'tanggal' => 'required|date',
+        ]);
+
+        $kegiatan = Kegiatan::findOrFail($id);
+        $kegiatan->update($validated);
+
+        return redirect()->route('kalender')->with('success', 'Kegiatan berhasil diperbarui.');
+    }
+
+    public function destroy($id)
+    {
+        $kegiatan = Kegiatan::findOrFail($id);
+        $kegiatan->delete();
+
+        return redirect()->route('kalender')->with('success', 'Kegiatan berhasil dihapus.');
+    }
+
+    // API Methods
+    public function indexApi()
+    {
+        return response()->json(Kegiatan::latest()->get());
+    }
+
+    public function storeApi(Request $request)
+    {
+        $validated = $request->validate([
+            'judul' => 'required|string|min:3|max:100',
+            'deskripsi' => 'required|string|min:3|max:500',
+            'tanggal' => 'required|date|after_or_equal:today',
+        ]);
+
+        $kegiatan = Kegiatan::create($validated);
+
+        return response()->json($kegiatan, 201);
+    }
+
+    public function updateApi(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'judul' => 'sometimes|required|string|min:3|max:100',
+            'deskripsi' => 'sometimes|required|string|min:3|max:500',
+            'tanggal' => 'sometimes|required|date',
+        ]);
+
+        $kegiatan = Kegiatan::findOrFail($id);
+        $kegiatan->update($validated);
+
+        return response()->json($kegiatan);
+    }
+
+    public function destroyApi($id)
+    {
+        Kegiatan::destroy($id);
+        return response()->json(null, 204);
+    }
 }
