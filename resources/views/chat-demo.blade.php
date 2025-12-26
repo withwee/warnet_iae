@@ -87,6 +87,17 @@
             gap: 1rem;
         }
         
+        #group-members {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        #group-members:before {
+            content: "👥";
+            font-size: 0.875rem;
+        }
+        
         .chat-body {
             display: flex;
             flex: 1;
@@ -564,7 +575,10 @@
                     </svg>
                     Back
                 </a>
-                <h3 id="current-group-name">Group Chat</h3>
+                <div>
+                    <h3 id="current-group-name">Group Chat</h3>
+                    <div id="group-members" style="font-size: 0.875rem; color: #95a5a6; margin-top: 0.25rem; display: none;"></div>
+                </div>
             </div>
             <button class="btn btn-primary" onclick="showCreateGroupModal()">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -955,6 +969,9 @@
             document.getElementById('no-group').style.display = 'none';
             document.getElementById('chat-content').style.display = 'flex';
             
+            // Load group details (including members)
+            await loadGroupDetails(groupId);
+            
             // Load messages
             await loadMessages(groupId);
             
@@ -972,6 +989,36 @@
                 // Add new listeners
                 messageInput.addEventListener('input', handleTyping);
                 messageInput.addEventListener('blur', stopTyping);
+            }
+        }
+        
+        // Load group details
+        async function loadGroupDetails(groupId) {
+            try {
+                const response = await axios.get(`${API_BASE}/groups/${groupId}`);
+                const group = response.data.group;
+                
+                // Update group name in header
+                document.getElementById('current-group-name').textContent = group.name;
+                
+                // Get members except current user
+                const otherMembers = group.members.filter(m => m.id !== currentUser);
+                const membersDiv = document.getElementById('group-members');
+                
+                if (otherMembers.length > 0) {
+                    const memberNames = otherMembers.map(m => m.name).join(', ');
+                    membersDiv.textContent = memberNames;
+                    membersDiv.style.display = 'flex'; // Show member list
+                } else {
+                    membersDiv.textContent = 'Only you in this group';
+                    membersDiv.style.display = 'flex'; // Show message even if alone
+                }
+            } catch (error) {
+                console.error('Error loading group details:', error);
+                document.getElementById('current-group-name').textContent = 'Group Chat';
+                const membersDiv = document.getElementById('group-members');
+                membersDiv.textContent = '';
+                membersDiv.style.display = 'none'; // Hide on error
             }
         }
 
